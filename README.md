@@ -1,10 +1,10 @@
-# Deprecating Legacy Cryptographic Algorithms
+# 
 
-This is the working area for the individual Internet-Draft, "Deprecating Legacy Cryptographic Algorithms".
+This is the working area for the individual Internet-Draft, "".
 
-* [Editor's Copy](https://chris-wood.github.io/draft-wood-crypto-sunset/#go.draft-wood-crypto-sunset.html)
-* [Individual Draft](https://tools.ietf.org/html/draft-wood-crypto-sunset)
-* [Compare Editor's Copy to Individual Draft](https://chris-wood.github.io/draft-wood-crypto-sunset/#go.draft-wood-crypto-sunset.diff)
+* [Editor's Copy](https://dstebila.github.io/draft-hybridization-tls/#go.draft-hybridization-tls.html)
+* [Individual Draft](https://tools.ietf.org/html/draft-hybridization-tls)
+* [Compare Editor's Copy to Individual Draft](https://dstebila.github.io/draft-hybridization-tls/#go.draft-hybridization-tls.diff)
 
 ## Building the Draft
 
@@ -21,4 +21,4 @@ This requires that you have the necessary software installed.  See
 ## Contributing
 
 See the
-[guidelines for contributions](https://github.com/chris-wood/draft-wood-crypto-sunset/blob/master/CONTRIBUTING.md).
+[guidelines for contributions](https://github.com/dstebila/draft-hybridization-tls/blob/master/CONTRIBUTING.md).
