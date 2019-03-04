@@ -56,6 +56,8 @@ Experimental implementations:
     - https://github.com/open-quantum-safe/openssl/tree/OQS-OpenSSL_1_0_2-stable
 - TLS 1.3
     - https://github.com/open-quantum-safe/openssl/tree/OQS-OpenSSL_1_1_1-stable
+    - Google CECPQ1
+    - Google CECPQ2?
 
 Internet-Drafts:
 
@@ -70,6 +72,10 @@ Literature:
     - Robust combiners paper
     - https://eprint.iacr.org/2018/024
     - https://eprint.iacr.org/2018/903
+
+TLS working group document on adding an external PSK - https://tools.ietf.org/html/draft-ietf-tls-tls13-cert-with-extern-psk-00
+
+Also IKE/IPsec - Scott Fluhrer
 
 ## Requirements
 
@@ -104,15 +110,29 @@ In this approach, the parties negotiate which traditional algorithm and which ne
 
 ## (Comb) How to use keys?
 
-- concatenate keys then hash
-- chain hashing (e.g. subsequent stages of TLS 1.3 key schedule)
+- concatenate keys then hash (benefit: minimal changes)
+- chain hashing (e.g. subsequent stages of TLS 1.3 key schedule) (benefit: modularity)
 - do you need to include the ciphertexts in the hash calculation? (More of a theoretical question, TLS does this.)
+
+# Candidate instantiations
+
+*Select one or two combinations of the choices above*
+
+# Other TLS considerations
+
+- Chaining properties during resumption: does the ephemeral key exchange in a resumed session need to use the same algorithms as in the initial one?
+
+- 0-RTT
+
+- Dealing with failures
 
 # IANA Considerations
 
 TODO
 
 # Security Considerations
+
+## Is IND-CCA required?
 
 ## Preserving IND-CCA security
 
