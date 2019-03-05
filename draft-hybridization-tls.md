@@ -24,6 +24,7 @@ normative:
 
 informative:
   EXTERN-PSK: I-D.ietf-tls-tls13-cert-with-extern-psk
+  KIEFER: I-D.kiefer-tls-ecdhe-sidh
   OQS-111:
     target: https://github.com/open-quantum-safe/openssl/tree/OQS-OpenSSL_1_1_1-stable
     title: "OQS-OpenSSL-1-1-1_stable"
@@ -103,7 +104,7 @@ document are to be interpreted as described in {{RFC2119}}.
 
 Recall that in TLS 1.3, the key exchange mechanism is negotiated via the `supported_groups` extension.  The `NamedGroup` enum is a list of standardized groups for Diffie--Hellman key exchange, such as `secp256r1`, `x25519`, and `ffdhe2048`.  
 
-The client, in its `ClientHello` message, lists its supported mechanisms in the `supported_groups` extension.  The client also optionally includes the public key of one of these groups in the `key_share` extension as a guess of which mechanism the server might accept in hopes of reducing the number of round trips.  
+The client, in its `ClientHello` message, lists its supported mechanisms in the `supported_groups` extension.  The client also optionally includes the public key of one or more of these groups in the `key_share` extension as a guess of which mechanisms the server might accept in hopes of reducing the number of round trips.  
 
 If the server is willing to use one of the client's requested mechanisms, it responds with a `key_share` extension containing its public key for the desired mechanism.
 
@@ -117,32 +118,56 @@ In these two approaches, the parties negotiate which traditional algorithm and w
 
 **(Neg-Ind-2)** The client advertises a single list to the server which contains both its traditional and next-generation mechanisms (e.g., all in the existing `ClientHello` `supported_groups` extension), but with some external table provides a standardized mapping of those mechanisms as either "traditional" or "next-generation".  A server could then select two algorithms from this list, one from each category.
 
-### (Neg-Comb): Negotiating hybrid algorithms as a combination
+**(Neg-Ind-3)** The client advertises a single list to the server delimited into sublists: one for its traditional mechanisms and one for its next-generation mechanisms, all in the existing `ClientHello` `supported_groups` extension, with a special code point serving as a delimiter between the two lists.  For example, `supported_groups = secp256r1, x25519, delimiter, nextgen1, nextgen4`.
+
+### (Neg-Comb) Negotiating hybrid algorithms as a combination
 
 In these two approaches, combinations of key exchange mechanisms appear as a single monolithic block; the parties negotiate which of several combinations they wish to use.
 
-**(Neg-Comb-1)** The `NamedGroup` enum is extended to include algorithm identifiers for each **combination** of algorithms desired by the working group.  There is no "internal structure" to the algorithm identifiers for each combination, they are simply new code points assigned arbitrarily.  The client includes any desired combinations in its `ClientHello` `supported_groups` list, and the server picks one of these.  This is the approach in {{OQS-111}}.
+**(Neg-Comb-1)** The `NamedGroup` enum is extended to include algorithm identifiers for each **combination** of algorithms desired by the working group.  There is no "internal structure" to the algorithm identifiers for each combination, they are simply new code points assigned arbitrarily.  The client includes any desired combinations in its `ClientHello` `supported_groups` list, and the server picks one of these.  This is the approach in {{KIEFER}} and {{OQS-111}}.
 
 **(Neg-Comb-2)** The `NamedGroup` enum is extended to include algorithm identifiers for each next-gen algorithm.  Some additional field/extension is used to convey which combinations the parties wish to use.  For example, in {{WHYTE}}, there are distinguished `NamedGroup` called `hybrid_marker 0`, `hybrid_marker 1`, `hybrid_marker 2`, etc.  This is complemented by a `HybridExtension` which contains mappings for each numbered `hybrid_marker` to the set of key exchange algorithms (2 or more) that comprise that proposed combination.
 
-### Benefits and Drawbacks
+### Benefits and drawbacks
 
-**Combinatorial explosion.** (Neg-Comb-1) requires new identifiers to be defined for each desired combination.  The other 3 options in this section do not.
+**Combinatorial explosion.** (Neg-Comb-1) requires new identifiers to be defined for each desired combination.  The other 4 options in this section do not.
 
-**Extensions.** (Neg-Comb-1) does not require any new extensions to be defined.  (Neg-Ind-2) also does not require any new extensions to be defined, but does change the processing logic of an existing extension.  (Neg-Ind-1) and (Neg-Comb-2) do require new extensions.
+**Extensions.** (Neg-Ind-2), (Neg-Ind-3), and (Neg-Comb-1) do not require any new extensions to be defined.  The other 2 options in this section do.
 
-**0-RTT.**
+**New logic.** All options in this section except (Neg-Comb-1) require new logic to process negotiation.
+
+**Matching security levels.** (Neg-Ind-1), (Neg-Ind-2), (Neg-Ind-3), and (Neg-Comb-2) allow algorithms of different claimed security level from their corresponding lists to be combined.  For example, this could result in combining ECDH secp256r1 (classical security level 128) with NewHope-1024 (classical security level 256).  Implementations dissatisfied with a mismatched security levels must either accept this mismatch or attempt to renegotiate.  (Neg-Ind-1), (Neg-Ind-2), and (Neg-Ind-3) give control over the combination to the server; (Neg-Comb-2) gives control over the combination to the client.  (Neg-Comb-1) only allows standardized combinations, which could be set by TLS working group to have matching security (provided security estimates do not evolve separately).
 
 ## (Num) How many hybrid algorithms to combine?
 
 - 2
 - more than 2
 
-## (Ctxt) How to convey public keys/ciphertexts?
+## (Shares) How to convey key shares?
 
-- concatenate ciphertexts
-- extension carrying concatenated key shares
-- extension carrying extra key shares
+In ECDH ephmeral key exchange, the client sends its ephmeral public key in the `key_share` extension of the `ClientHello` message, and the server sends its ephmeral public key in the `key_share` extension of the `ServerHello` message.
+
+For a general key encapsulation mechanism used for ephemeral key exchange, we imagine that that client generates a fresh KEM public key / secret pair for each connection, sends it to the client, and the server responds with a KEM ciphertext.  For simplicity and consistency with TLS 1.3 terminology, we will refer to both of these types of objects as "key shares".
+
+In hybrid key exchange, we have to decide how to convey the client's two (or more) key shares, and the server's two (or more) key shares.
+
+### (Shares-Concat) Concatenate key shares
+
+The client concatenates the bytes representing its two key shares and uses this directly as the `key_exchange` value in a `KeyShareEntry` in its `key_share` extension.  The server does the same thing.  Note that the `key_exchange` value can be an octet string of length at most 2^16-1.  This is the approach taken in {{KIEFER}}, {{OQS-111}}, and {{WHYTE}}.
+
+### (Shares-Multiple) Send multiple key shares
+
+The client sends multiple key shares directly in the `client_shares` vectors of the `ClientHello` `key_share` extension.  The server does the same.  (Note that while the existing `KeyShareClientHello` struct allows for multiple key share entries, the existing `KeyShareServerHello` only permits a single key share entry, so some modification would be required to use this approach for the server to send multiple key shares.)
+
+### (Shares-Ext-Additional) Extension carrying additional key shares
+
+The client sends the key share for its traditional algorithm in the original `key_share` extension of the `ClientHello` message, and the key share for its next-gen algorithm in some additional extension in the `ClientHello` message.  The server does the same thing.  This is the approach taken in {{SCHANCK}}.
+
+### Benefits and Drawbacks
+
+**Backwards compatibility.** (Shares-Multiple) is fully backwards compatible with non-hybrid-aware servers.  (Shares-Ext-Additional) is backwards compatible with non-hybrid-aware servers provided they ignore unrecognized extensions.  (Shares-Concat) is backwards-compatible with non-hybrid aware servers, but may result in duplication / additional round trips (see below).
+
+**Duplication versus additional round trips.** If a client wants to offer multiple key shares for multiple combinations in order to avoid retry requests, then the client may ended up sending a key share for one algorithm multiple times when using (Shares-Ext-Additional) and (Shares-Concat).  (For example, if the client wants to send an ECDH-secp256r1 + McEliece123 key share, and an ECDH-secp256r1 + NewHope1024 key share, then the same ECDH public key may be sent twice.  If the client also wants to offer a traditional ECDH-only key share for non-hybrid-aware implementations and avoid retry requests, then that same ECDH public key may be sent another time.)  (Shares-Multiple) does not result in duplicate key shares.
 
 ## (Comb) How to use keys?
 
