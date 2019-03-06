@@ -88,6 +88,18 @@ It intentionally does not address:
 - Which next-generation algorithms to use in TLS 1.3, nor algorithm identifiers nor encoding mechanisms for next-generation algorithms.  (The outcomes of the NIST Post-Quantum Cryptography Standardization Project will inform this choice.)
 - Authentication using next-generation algorithms.  (If a cryptographic assumption is broken due to the advent of a quantum computer or some other cryptanalytic breakthrough, confidentiality of information can be broken retroactively by any adversary who has passively recorded handshakes and encrypted communications.  But session authentication cannot be retroactively broken.)
 
+## Goals
+
+- Backwards compatibility
+- No extra round trips
+- No duplicate information
+
+Scenarios:
+
+- New client, new server
+- New client, old server
+- Old client, new server
+
 ## Related work
 
 Experimental implementations:
@@ -124,7 +136,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
 document are to be interpreted as described in {{RFC2119}}.
 
-# Design considerations
+# Design options
 
 ## (Neg) How to negotiate hybridization and hybrid algorithms?
 
@@ -156,15 +168,20 @@ In these two approaches, combinations of key exchange mechanisms appear as a sin
 
 **(Neg-Comb-2)** The `NamedGroup` enum is extended to include algorithm identifiers for each next-gen algorithm.  Some additional field/extension is used to convey which combinations the parties wish to use.  For example, in {{WHYTE}}, there are distinguished `NamedGroup` called `hybrid_marker 0`, `hybrid_marker 1`, `hybrid_marker 2`, etc.  This is complemented by a `HybridExtension` which contains mappings for each numbered `hybrid_marker` to the set of key exchange algorithms (2 or more) that comprise that proposed combination.
 
+**(Neg-Comb-3)** The client lists combinations in `supported_groups` list, using a special delimiter to indicate combinations.  For example,
+`supported_groups = combo_delimiter, secp256r1, nextgen1, combo_delimiter, secp256r1, nextgen4, standalone_delimiter, secp256r1, x25519` would indicate that the client's highest preference is the combination secp256r1+nextgen1, the next highest preference is the combination secp2561+nextgen4, then the single algorithm secp256r1, then the single algorithm x25519.  A hybrid-aware server would be able to parse these; a hybrid-unaware server would see `unknown, secp256r1, unknown, unknown, secp256r1, unknown, unknown, secp256r1, x25519`, which it would be able to process, although there is the potential that every "projection" of a hybrid list that is tolerable to a client does not result in list that is tolerable to the client.
+
 ### Benefits and drawbacks
 
 **Combinatorial explosion.** (Neg-Comb-1) requires new identifiers to be defined for each desired combination.  The other 4 options in this section do not.
 
-**Extensions.** (Neg-Ind-2), (Neg-Ind-3), and (Neg-Comb-1) do not require any new extensions to be defined.  The other 2 options in this section do.
+**Extensions.** (Neg-Ind-1) and (Neg-Comb-2) require new extensions to be defined.  The other options in this section do not.
 
 **New logic.** All options in this section except (Neg-Comb-1) require new logic to process negotiation.
 
 **Matching security levels.** (Neg-Ind-1), (Neg-Ind-2), (Neg-Ind-3), and (Neg-Comb-2) allow algorithms of different claimed security level from their corresponding lists to be combined.  For example, this could result in combining ECDH secp256r1 (classical security level 128) with NewHope-1024 (classical security level 256).  Implementations dissatisfied with a mismatched security levels must either accept this mismatch or attempt to renegotiate.  (Neg-Ind-1), (Neg-Ind-2), and (Neg-Ind-3) give control over the combination to the server; (Neg-Comb-2) gives control over the combination to the client.  (Neg-Comb-1) only allows standardized combinations, which could be set by TLS working group to have matching security (provided security estimates do not evolve separately).
+
+**Backwards-compability.** TLS 1.3-compliant hybrid-unaware servers should ignore unreocgnized elements in `supported_groups` (Neg-Ind-2), (Neg-Ind-3), (Neg-Comb-1), (Neg-Comb-2) and unrecognized `ClientHello` extensions (Neg-Ind-1), (Neg-Comb-2).  In (Neg-Ind-3) and (Neg-Comb-3), a server that is hybrid-unaware will ignore the delimiters in `supported_groups`, and thus might try to negotiate an algorithm individually that is only meant to be used in combination; depending on how such an implementation is coded, it may also encounter bugs when the same element appears multiple times in the list.
 
 ## (Num) How many hybrid algorithms to combine?
 
@@ -241,6 +258,10 @@ concatenated_shared_secret -> HKDF-Extract = Handshake Secret
 This is the approach used in {{KIEFER}}, {{OQS-111}}, and {{WHYTE}}.  
 
 {{BINDEL}} analyze the security of this approach as abstracted in their `dualPRF` combiner.  They show that, if the component KEMs are IND-CPA-secure (or IND-CCA-secure), then the values output by `Derive-Secret` are IND-CPA-secure (respectively, IND-CCA-secure).  An important aspect of their analysis is that each ciphertext is input to the final PRF calls; this holds for TLS 1.3 since the `Derive-Secret` calls that derive output keys (application traffic secrets, and exporter and resumption master secrets) include the transcript hash as input.
+
+### (Comb-XOR) XOR keys then KDF
+
+TODO
 
 ### (Comb-Chain) Chain of KDF applications for each key
 
