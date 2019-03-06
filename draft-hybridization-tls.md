@@ -2,7 +2,7 @@
 title: Design issues for hybrid key exchange in TLS
 abbrev: hybridization-tls
 docname: draft-hybridization-tls-latest
-date: 2019-02-28
+date: 2019-03-05
 category: info
 
 ipr: trust200902
@@ -23,7 +23,35 @@ normative:
   TLS13: RFC8446
 
 informative:
+  BINDEL:
+    target: https://eprint.iacr.org/2018/903
+    title: Hybrid Key Encapsulation Mechanisms and Authenticated Key Exchange
+    author:
+      -
+        ins: N. Bindel
+      -
+        ins: J. Brendel
+      -
+        ins: M. Fischlin
+      -
+        ins: B. Goncalves
+      -
+        ins: D. Stebila
+    seriesinfo: Post-Quantum Cryptography (PQCrypto)
+    date: 2019
   EXTERN-PSK: I-D.ietf-tls-tls13-cert-with-extern-psk
+  GIACON:
+    target: https://eprint.iacr.org/2018/024
+    title: KEM Combiners
+    author:
+      -
+        ins: F. Giacon
+      -
+        ins: F. Heuer
+      -
+        ins: B. Poettering
+    seriesinfo: Public Key Cryptography (PKC)
+    date: 2018
   KIEFER: I-D.kiefer-tls-ecdhe-sidh
   OQS-111:
     target: https://github.com/open-quantum-safe/openssl/tree/OQS-OpenSSL_1_1_1-stable
@@ -75,7 +103,7 @@ Experimental implementations:
 Internet-Drafts:
 
 - {{WHYTE}}
-- https://tools.ietf.org/id/draft-kiefer-tls-ecdhe-sidh-00.html
+- {{KIEFER}}
 - {{SCHANCK}}
 - Amazon's SIKE and BIKE Hybrid Key Exchange Cipher Suites for Transport Layer Security (TLS)
 
@@ -83,8 +111,8 @@ Literature:
 
 - Combiners
     - Robust combiners paper
-    - https://eprint.iacr.org/2018/024
-    - https://eprint.iacr.org/2018/903
+    - {{GIACON}}
+    - {{BINDEL}}
 
 TLS working group document on adding an external PSK - {{EXTERN-PSK}}
 
@@ -140,6 +168,8 @@ In these two approaches, combinations of key exchange mechanisms appear as a sin
 
 ## (Num) How many hybrid algorithms to combine?
 
+TODO
+
 - 2
 - more than 2
 
@@ -171,9 +201,139 @@ The client sends the key share for its traditional algorithm in the original `ke
 
 ## (Comb) How to use keys?
 
-- concatenate keys then hash (benefit: minimal changes)
-- chain hashing (e.g. subsequent stages of TLS 1.3 key schedule) (benefit: modularity)
-- do you need to include the ciphertexts in the hash calculation? (More of a theoretical question, TLS does this.)
+Each hybrid key exchange algorithm establishes a shared secret.  These shared secrets must be combined in some way.
+
+### (Comb-Concat) Concatenate keys then KDF
+
+Each party concatenates the shared secrets established by each hybrid algorithm in an agreed-upon order, then uses feeds that through a key derivation function.  In the context of TLS 1.3, this would mean using the concatenated shared secret in place of the (EC)DHE input to the second call to `HKDF-Extract` in the TLS 1.3 key schedule:
+
+~~~~
+                                    0
+                                    |
+                                    v
+                      PSK ->  HKDF-Extract = Early Secret
+                                    |
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+concatenated_shared_secret -> HKDF-Extract = Handshake Secret
+^^^^^^^^^^^^^^^^^^^^^^^^^^          |
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+                         0 -> HKDF-Extract = Master Secret
+                                    |
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+~~~~
+
+This is the approach used in {{KIEFER}}, {{OQS-111}}, and {{WHYTE}}.  
+
+{{BINDEL}} analyze the security of this approach as abstracted in their `dualPRF` combiner.  They show that, if the component KEMs are IND-CPA-secure (or IND-CCA-secure), then the values output by `Derive-Secret` are IND-CPA-secure (respectively, IND-CCA-secure).  An important aspect of their analysis is that each ciphertext is input to the final PRF calls; this holds for TLS 1.3 since the `Derive-Secret` calls that derive output keys (application traffic secrets, and exporter and resumption master secrets) include the transcript hash as input.
+
+### (Comb-Chain) Chain of KDF applications for each key
+
+Each party applies a chain of key derivation functions to the shared secrets established by each hybrid algorithm in an agreed-upon order; roughly speaking: `F(k1 || F(k2))`.  In the context of TLS 1.3, this would mean extending the key schedule to have one round of the key schedule applied for each hybrid algorithm's shared secret:
+
+~~~~
+                                    0
+                                    |
+                                    v
+                      PSK ->  HKDF-Extract = Early Secret
+                                    |
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+ traditional_shared_secret -> HKDF-Extract
+ ^^^^^^^^^^^^^^^^^^^^^^^^^          |
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+    next_gen_shared_secret -> HKDF-Extract = Handshake Secret
+    ^^^^^^^^^^^^^^^^^^^^^^          |                             
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+                         0 -> HKDF-Extract = Master Secret
+                                    |
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+~~~~
+
+This is the approach used in {{SCHANCK}}.
+
+{{BINDEL}} analyze the security of this approach as abstracted in their nested dual-PRF `N` combiner, showing a similar result as for the dualPRF combiner that it preserves IND-CPA (or IND-CCA) security. Again their analysis depends on each ciphertext being input to the final PRF (`Derive-Secret`) calls, which holds for TLS 1.3.
+
+### (Comb-AltInput) Second shared secret in an alternate KDF input
+
+In the context of TLS 1.3, the next-generation shared secret is used in place of a currently unused input in the TLS 1.3 key schedule, namely replacing the `0` "IKM" input to the final `HKDF-Extract`:
+
+~~~~
+                                    0
+                                    |
+                                    v
+                      PSK ->  HKDF-Extract = Early Secret
+                                    |
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+ traditional_shared_secret -> HKDF-Extract = Handshake Secret
+ ^^^^^^^^^^^^^^^^^^^^^^^^^          |
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+    next_gen_shared_secret -> HKDF-Extract = Master Secret
+    ^^^^^^^^^^^^^^^^^^^^^^          |
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+~~~~
+
+This approach is not taken in any of the known post-quantum/hybrid TLS drafts.  However, it bears some similarities to the approach for using external PSKs in {{EXTERN-PSK}}.
+
+### Benefits and Drawbacks
+
+**New logic.**  While (Comb-Concat) requires new logic to compute the concatenated shared secret, this value can then be used by the TLS 1.3 key schedule without changes to the key schedule logic.  In contrast, (Comb-Chain) requires the TLS 1.3 key schedule to be extended for each extra hybrid algorithm.  
+
+**Philosophical.**  The TLS 1.3 key schedule already applies a new stage for different types of keying material (PSK versus (EC)DHE), so (Comb-Chain) continues that approach.
+
+**Efficiency.** (Comb-Chain) increases the number of KDF applications for each hybrid algorith, whereas (Comb-Concat) and (Comb-AltInput) keep the number of KDF applications the same (though with potentially longer inputs).
+
+**Extensibility.**  (Comb-AltInput) changes the use of an existing input, which might conflict with other future changes to the use of the input.
+
+**More than 2 hybrid algorithms.**  The techniques in (Comb-Concat) and (Comb-Chain) can naturally accommodate more than 2 hybrid shared secrets since there is no distinction to how each shared secret is treated.  (Comb-AltInput) would have to make some distinct, since the 2 hybrid shared secrets are used in different ways; for example, the first shared secret is used as the "IKM" input in the 2nd `HKDF-Extract` call, and all subsequent shared secrets are concatenated to be used as the "IKM" input in the 3rd `HKDF-Extract` call.
 
 # Candidate instantiations
 
