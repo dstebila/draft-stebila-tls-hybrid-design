@@ -23,6 +23,34 @@ normative:
   TLS13: RFC8446
 
 informative:
+  BCNS15:
+    target: https://eprint.iacr.org/2014/599
+    title: Post-quantum key exchange for the TLS protocol from the ring learning with errors problem
+    author:
+      -
+        ins: J. W. Bos
+      -
+        ins: C. Costello
+      -
+        ins: M. Naehrig
+      -
+        ins: D. Stebila
+    seriesinfo: IEEE Security & Privacy (S&P)
+    date: 2015
+  BERNSTEIN:
+    title: Post-Quantum Cryptography
+    author:
+      -
+        role: editor
+        ins: D. Bernstein
+      -
+        role: editor
+        ins: J. Buchmann
+      -
+        role: editor
+        ins: E. Dahmen
+    seriesinfo: Springer
+    date: 2009
   BINDEL:
     target: https://eprint.iacr.org/2018/903
     title: Hybrid Key Encapsulation Mechanisms and Authenticated Key Exchange
@@ -39,7 +67,43 @@ informative:
         ins: D. Stebila
     seriesinfo: Post-Quantum Cryptography (PQCrypto)
     date: 2019
+  CECPQ1:
+    target: https://security.googleblog.com/2016/07/experimenting-with-post-quantum.html
+    title: Experimenting with Post-Quantum Cryptography
+    author:
+      -
+        ins: M. Braithwaite
+    date: 2016-07-07
+  CECPQ2:
+    target: https://www.imperialviolet.org/2018/12/12/cecpq2.html
+    title: CECPQ2
+    author:
+      -
+        ins: A. Langley
+    date: 2018-12-12
   EXTERN-PSK: I-D.ietf-tls-tls13-cert-with-extern-psk
+  FRODO:
+    target: https://eprint.iacr.org/2016/659
+    title: "Frodo: Take off the ring! Practical, Quantum-Secure Key Exchange from LWE"
+    author:
+      -
+        ins: J. W. Bos
+      -
+        ins: C. Costello
+      -
+        ins: L. Ducas
+      -
+        ins: I. Mironov
+      -
+        ins: M. Naehrig
+      -
+        ins: V. Nikolaenko
+      -
+        ins: A. Raghunathan
+      -
+        ins: D. Stebila
+    seriesinfo: ACM Conference on Computer and Communications Security (CCS)
+    date: 2016
   GIACON:
     target: https://eprint.iacr.org/2018/024
     title: KEM Combiners
@@ -52,15 +116,46 @@ informative:
         ins: B. Poettering
     seriesinfo: Public Key Cryptography (PKC)
     date: 2018
+  HOFFMAN: I-D.hoffman-c2pq
+  IKE-HYBRID: I-D.tjhai-ipsecme-hybrid-qske-ikev2
+  IKE-PSK: I-D.ietf-ipsecme-qr-ikev2
   KIEFER: I-D.kiefer-tls-ecdhe-sidh
+  LANGLEY:
+    target: https://www.imperialviolet.org/2018/04/11/pqconftls.html
+    title: Post-quantum confidentiality for TLS
+    author:
+      -
+        ins: A. Langley
+    date: 2018-04-11
+  NIELSEN:
+    title: Quantum Computation and Quantum Information
+    author:
+      -
+        ins: M. A. Nielsen
+      -
+        ins: I. L. Chuang
+    seriesinfo: Cambridge University Press
+    date: 2000
+  NIST:
+    target: https://www.nist.gov/pqcrypto
+    title: Post-Quantum Cryptography
+    author:
+      org: National Institute of Standards and Technology (NIST)
+  OQS-102:
+    target: https://github.com/open-quantum-safe/openssl/tree/OQS-OpenSSL_1_0_2-stable
+    title: OQS-OpenSSL-1-0-2_stable
+    author:
+      org: Open Quantum Safe Project
+    date: 2018-11
   OQS-111:
     target: https://github.com/open-quantum-safe/openssl/tree/OQS-OpenSSL_1_1_1-stable
-    title: "OQS-OpenSSL-1-1-1_stable"
+    title: OQS-OpenSSL-1-1-1_stable
     author:
       org: Open Quantum Safe Project
     date: 2018-11
   SCHANCK: I-D.schanck-tls-additional-keyshare
-  WHYTE: I-D.whyte-qsh-tls13
+  WHYTE12: I-D.whyte-qsh-tls12
+  WHYTE13: I-D.whyte-qsh-tls13
 
 --- abstract
 
@@ -70,54 +165,79 @@ TODO
 
 # Introduction {#introduction}
 
-TODO
+## Terminology
 
-**Terminology.** For the purposes of this document, it is helpful to be able to divide algorithms into two classes:
+For the purposes of this document, it is helpful to be able to divide cryptographic algorithms into two classes:
 
-- "Traditional" algorithms: Algorithms which are widely deployed today, but which may be deprecated in the future.  In the context of TLS 1.3 in 2019, examples including ECDH using nistp256 or Curve25519.
+- "Traditional" algorithms: Algorithms which are widely deployed today, but which may be deprecated in the future.  In the context of TLS 1.3 in 2019, examples of traditional key exchange algorithms include elliptic curve Diffie--Hellman using secp256r1 or x25519, or finite-field Diffie--Hellman.
 - "Next-generation" (or "next-gen") algorithms: Algorithms which are not yet widely deployed, but which may eventually be widely deployed.  An additional facet of these algorithms may be that we have less confidence in their security due to them being relatively new or less studied.  This includes "post-quantum" algorithms.
+
+"Hybrid" key exchange, in this context, means the use of two (or more) key exchange mechanisms based on different cryptographic assumptions (for example, one traditional algorithm and one next-gen algorithm), with the purpose of the final session key being secure as long as at least one of the component key exchange mechanisms remains unbroken.
 
 The primary motivation of this document is preparing for post-quantum algorithms.  However, it is possible that public key cryptography based on alternative mathematical constructions will be required independent of the advent of a quantum computer, for example because of a cryptanalytic breakthrough.  As such we opt for the more generic term "next-generation" algorithms rather than exclusively "post-quantum" algorithms.
 
+## Motivation for use of hybrid algorithms
+
+Ideally, one would not use hybrid key exchange: one would have confidence in a single algorithm and parameterization that will stand the test of time.  However, this may not be the case in the face of quantum computers and cryptanalytic advances more generally.  
+
+Many (but not all) of the post-quantum algorithms currently under consideration are relatively new; they have not been subject to the same depth of study as RSA and finite-field / elliptic curve Diffie--Hellman, and thus we do not necessarily have as much confidence in their fundamental security, or the concrete security level of specific parameterizations.  
+
+Early adopters eager for post-quantum security may want to use hybrid key exchange to have the potential of post-quantum security from a less-well-studied algorithm while still retaining at least the security currently offered by traditional algorithms.  (They may even need to retain traditional algorithms due to regulatory constraints.)  
+
+Moreover, it is possible that even by the end of the NIST Post-Quantum Cryptography Standardization Project, and for a period of time thereafter, conservative users may not have full confidence in some algorithms.
+
+As such, there may be users for whom hybrid key exchange is an appropriate step prior to an eventual transition to next-generation algorithms.
+
 ## Scope
 
-This document focuses on hybrid ephemeral key exchange in TLS 1.3 {{TLS13}}.
+This document focuses on hybrid ephemeral key exchange in TLS 1.3 {{TLS13}}.  It intentionally does not address:
 
-It intentionally does not address:
-
-- Which next-generation algorithms to use in TLS 1.3, nor algorithm identifiers nor encoding mechanisms for next-generation algorithms.  (The outcomes of the NIST Post-Quantum Cryptography Standardization Project will inform this choice.)
+- Selecting which next-generation algorithms to use in TLS 1.3, nor algorithm identifiers nor encoding mechanisms for next-generation algorithms.  (The outcomes of the NIST Post-Quantum Cryptography Standardization Project {{NIST}} will inform this choice.)
 - Authentication using next-generation algorithms.  (If a cryptographic assumption is broken due to the advent of a quantum computer or some other cryptanalytic breakthrough, confidentiality of information can be broken retroactively by any adversary who has passively recorded handshakes and encrypted communications.  But session authentication cannot be retroactively broken.)
 
 ## Goals
 
-- Backwards compatibility
-- No extra round trips
-- No duplicate information
+The primary goal of a hybrid key exchange mechanism is to facilitate the establishment of a shared secret which remains secure as long as as one of the component key exchange mechanisms remains unbroken.
 
-Scenarios:
+In addition to the primary cryptographic goal, there may be several additional goals in the context of TLS 1.3:
 
-- New client, new server
-- New client, old server
-- Old client, new server
+- **Backwards compatibility:** Clients and servers who are "hybrid-aware", i.e., compliant with whatever hybrid key exchange standard is developed for TLS, should remain compatible with endpoints and middle-boxes that are not hybrid-aware.  The three scenarios to consider are:
+    1. Hybrid-aware client, hybrid-aware server: These parties should establish a hybrid shared secret.
+    2. Hybrid-aware client, non-hybrid-aware server:  These parties should establish a traditional shared secret (assuming the hybrid-aware client is willing to downgrade to traditional-only).
+    3. Non-hybrid-aware client, hybrid-aware server:  These parties should establish a traditional shared secret (assuming the hybrid-aware server is willing to downgrade to traditional-only).
+
+    Ideally backwards compatibility should be achieved without extra round trips and without sending duplicate information; see below.
+
+- **High performance:** Use of hybrid key exchange should not be prohibitively expensive in terms of computational performance.  In general this will depend on the performance characteristics of the specific cryptographic algorithms used, and as such is outside the scope of this document.  See {{BCNS15}}, {{CECPQ1}}, {{FRODO}} for preliminary results about performance characteristics.
+
+- **Low latency:** Use of hybrid key exchange should not substantially increase the latency experienced to establish a connection.  Factors affecting this may include the following. 
+    - The computational performance characteristics of the specific algorithms used.  See above.
+    - The size of messages to be transmitted.  Public key / ciphertext sizes for post-quantum algorithms range from hundreds of bytes to over one hundred kilobytes, so this impact can be substantially.  See {{BCNS15}}, {{FRODO}} for preliminary results in a laboratory setting, and {{LANGLEY}} for preliminary results on more realistic networks.
+    - Additional round trips added to the protocol.  See below.
+
+- **No extra round trips:** Attempting to negotiate hybrid key exchange should not lead to extra round trips in any of the three hybrid-aware/non-hybrid-aware scenarios listed above.  
+
+- **No duplicate information:** Attempting to negotiate hybrid key exchange should not mean having to send multiple public keys of the same type.
 
 ## Related work
 
-Experimental implementations:
+Quantum computing and post-quantum cryptography in general are outside the scope of this document.  For a general introduction to quantum computing, see a standard textbook such as {{NIELSEN}}.  For an overview of post-quantum cryptography as of 2009, see {{BERNSTEIN}}.  For the current status of the NIST Post-Quantum Cryptography Standardization Project, see {{NIST}}.  For additional perspectives on the general transition from classical to post-quantum cryptography, see for example {{HOFFMAN}}.
 
-- TLS 1.2
-    - https://github.com/dstebila/openssl-rlwekex/tree/OpenSSL_1_0_1-stable
-    - https://github.com/open-quantum-safe/openssl/tree/OQS-OpenSSL_1_0_2-stable
-- TLS 1.3
-    - {{OQS-111}}
-    - Google CECPQ1
-    - Google CECPQ2?
+There have been several Internet-Drafts describing mechanisms for embedding post-quantum and/or hybrid key exchange in TLS:
 
-Internet-Drafts:
+- Internet-Drafts for TLS 1.2: {{WHYTE12}}
+- Internet-Drafts for TLS 1.3: {{KIEFER}}, {{SCHANCK}}, {{WHYTE13}}
 
-- {{WHYTE}}
-- {{KIEFER}}
-- {{SCHANCK}}
-- Amazon's SIKE and BIKE Hybrid Key Exchange Cipher Suites for Transport Layer Security (TLS)
+There have been several prototype implementations for post-quantum and/or hybrid key exchange in TLS:
+
+- Experimental implementations in TLS 1.2: {{BCNS15}}, {{CECPQ1}}, {{FRODO}}, {{OQS-102}}
+- Experimental implementations in TLS 1.3: {{CECPQ2}}, {{OQS-111}}
+
+These experimental implementations have taken an ad hoc approach and not attempted to implement one of the drafts listed above.
+
+Unrelated to post-quantum but still related to the issue of combining multiple types of keying material in TLS is the use of pre-shared keys, especially the recent TLS working group document on including an external pre-shared key {{EXTERN-PSK}}.
+
+Considering other IETF standards, there is work on post-quantum preshared keys in IKEv2 {{IKE-PSK}} and a framework for hybrid key exchange in IKEv2 {{IKE-HYBRID}}.
 
 Literature:
 
@@ -125,10 +245,6 @@ Literature:
     - Robust combiners paper
     - {{GIACON}}
     - {{BINDEL}}
-
-TLS working group document on adding an external PSK - {{EXTERN-PSK}}
-
-Also IKE/IPsec - Scott Fluhrer
 
 ## Requirements
 
@@ -166,7 +282,7 @@ In these two approaches, combinations of key exchange mechanisms appear as a sin
 
 **(Neg-Comb-1)** The `NamedGroup` enum is extended to include algorithm identifiers for each **combination** of algorithms desired by the working group.  There is no "internal structure" to the algorithm identifiers for each combination, they are simply new code points assigned arbitrarily.  The client includes any desired combinations in its `ClientHello` `supported_groups` list, and the server picks one of these.  This is the approach in {{KIEFER}} and {{OQS-111}}.
 
-**(Neg-Comb-2)** The `NamedGroup` enum is extended to include algorithm identifiers for each next-gen algorithm.  Some additional field/extension is used to convey which combinations the parties wish to use.  For example, in {{WHYTE}}, there are distinguished `NamedGroup` called `hybrid_marker 0`, `hybrid_marker 1`, `hybrid_marker 2`, etc.  This is complemented by a `HybridExtension` which contains mappings for each numbered `hybrid_marker` to the set of key exchange algorithms (2 or more) that comprise that proposed combination.
+**(Neg-Comb-2)** The `NamedGroup` enum is extended to include algorithm identifiers for each next-gen algorithm.  Some additional field/extension is used to convey which combinations the parties wish to use.  For example, in {{WHYTE13}}, there are distinguished `NamedGroup` called `hybrid_marker 0`, `hybrid_marker 1`, `hybrid_marker 2`, etc.  This is complemented by a `HybridExtension` which contains mappings for each numbered `hybrid_marker` to the set of key exchange algorithms (2 or more) that comprise that proposed combination.
 
 **(Neg-Comb-3)** The client lists combinations in `supported_groups` list, using a special delimiter to indicate combinations.  For example,
 `supported_groups = combo_delimiter, secp256r1, nextgen1, combo_delimiter, secp256r1, nextgen4, standalone_delimiter, secp256r1, x25519` would indicate that the client's highest preference is the combination secp256r1+nextgen1, the next highest preference is the combination secp2561+nextgen4, then the single algorithm secp256r1, then the single algorithm x25519.  A hybrid-aware server would be able to parse these; a hybrid-unaware server would see `unknown, secp256r1, unknown, unknown, secp256r1, unknown, unknown, secp256r1, x25519`, which it would be able to process, although there is the potential that every "projection" of a hybrid list that is tolerable to a client does not result in list that is tolerable to the client.
@@ -200,7 +316,7 @@ In hybrid key exchange, we have to decide how to convey the client's two (or mor
 
 ### (Shares-Concat) Concatenate key shares
 
-The client concatenates the bytes representing its two key shares and uses this directly as the `key_exchange` value in a `KeyShareEntry` in its `key_share` extension.  The server does the same thing.  Note that the `key_exchange` value can be an octet string of length at most 2^16-1.  This is the approach taken in {{KIEFER}}, {{OQS-111}}, and {{WHYTE}}.
+The client concatenates the bytes representing its two key shares and uses this directly as the `key_exchange` value in a `KeyShareEntry` in its `key_share` extension.  The server does the same thing.  Note that the `key_exchange` value can be an octet string of length at most 2^16-1.  This is the approach taken in {{KIEFER}}, {{OQS-111}}, and {{WHYTE13}}.
 
 ### (Shares-Multiple) Send multiple key shares
 
@@ -255,7 +371,7 @@ concatenated_shared_secret -> HKDF-Extract = Handshake Secret
                                     +-----> Derive-Secret(...)
 ~~~~
 
-This is the approach used in {{KIEFER}}, {{OQS-111}}, and {{WHYTE}}.  
+This is the approach used in {{KIEFER}}, {{OQS-111}}, and {{WHYTE13}}.  
 
 {{BINDEL}} analyze the security of this approach as abstracted in their `dualPRF` combiner.  They show that, if the component KEMs are IND-CPA-secure (or IND-CCA-secure), then the values output by `Derive-Secret` are IND-CPA-secure (respectively, IND-CCA-secure).  An important aspect of their analysis is that each ciphertext is input to the final PRF calls; this holds for TLS 1.3 since the `Derive-Secret` calls that derive output keys (application traffic secrets, and exporter and resumption master secrets) include the transcript hash as input.
 
