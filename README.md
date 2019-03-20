@@ -2,7 +2,7 @@
 
 This is the working area for the individual Internet-Draft, "draft-stebila-tls-hybrid-design".
 
-* [Editor's Copy](https://github.com/dstebila/draft-stebila-tls-hybrid-design/draft-stebila-tls-hybrid-design-latest.html)
+* [Editor's Copy](https://dstebila.github.io/draft-stebila-tls-hybrid-design/draft-stebila-tls-hybrid-design.html)
 * [Individual Draft](https://tools.ietf.org/html/draft-stebila-tls-hybrid-design)
 
 ## Building the Draft
