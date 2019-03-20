@@ -1,8 +1,8 @@
 ---
 title: Design issues for hybrid key exchange in TLS 1.3
 abbrev: stebila-tls-hybrid-design
-docname: draft-stebila-tls-hybrid-design-00
-date: 2019-03-11
+docname: draft-stebila-tls-hybrid-design-latest
+date: 2019-03-20
 category: info
 
 ipr: trust200902
@@ -250,6 +250,7 @@ The remainder of this document outlines various options we have identified for e
 4. [(Comb)](#comb) How should multiple shared secrets be combined?
 
     - [(Comb-Concat)](#comb-concat) Concatenate the shared secrets then use directly in the TLS 1.3 key schedule.
+    - [(Comb-KDF)](#comb-kdf) KDF the shared secrets together, then use the output in the TLS 1.3 key schedule.
     - [(Comb-XOR)](#comb-xor) XOR the shared secrets then use directly in the TLS 1.3 key schedule.
     - [(Comb-Chain)](#comb-chain) Extend the TLS 1.3 key schedule so that there is a stage of the key schedule for each shared secret.
     - [(Comb-AltInput)](#comb-altinput) Use the second shared secret in an alternate (otherwise unused) input in the TLS 1.3 key schedule.
@@ -357,9 +358,9 @@ The client sends the key share for its traditional algorithm in the original `ke
 
 Each component key exchange algorithm establishes a shared secret.  These shared secrets must be combined in some way that achieves the "hybrid" property: the resulting secret is secure as long as at least one of the component key exchange algorithms is unbroken.
 
-### (Comb-Concat) Concatenate keys then KDF {#comb-concat}
+### (Comb-Concat) Concatenate keys {#comb-concat}
 
-Each party concatenates the shared secrets established by each component algorithm in an agreed-upon order, then uses feeds that through a key derivation function.  In the context of TLS 1.3, this would mean using the concatenated shared secret in place of the (EC)DHE input to the second call to `HKDF-Extract` in the TLS 1.3 key schedule:
+Each party concatenates the shared secrets established by each component algorithm in an agreed-upon order, then feeds that through the TLS key schedule.  In the context of TLS 1.3, this would mean using the concatenated shared secret in place of the (EC)DHE input to the second call to `HKDF-Extract` in the TLS 1.3 key schedule:
 
 ~~~~
                                     0
@@ -398,9 +399,44 @@ This is the approach used in {{KIEFER}}, {{OQS-111}}, and {{WHYTE13}}.
 
 {{BINDEL}} analyzes the security of the (Comb-Concat) approach as abstracted in their `dualPRF` combiner.  They show that, if the component KEMs are IND-CPA-secure (or IND-CCA-secure), then the values output by `Derive-Secret` are IND-CPA-secure (respectively, IND-CCA-secure).  An important aspect of their analysis is that each ciphertext is input to the final PRF calls; this holds for TLS 1.3 since the `Derive-Secret` calls that derive output keys (application traffic secrets, and exporter and resumption master secrets) include the transcript hash as input.
 
-### (Comb-XOR) XOR keys then KDF {#comb-xor}
+### (Comb-KDF) KDF keys {#comb-kdf}
 
-Each party XORs the shared secrets established by each component algorithm (possibly after padding secrets of different lengths), then uses feeds that through a key derivation function.  In the context of TLS 1.3, this would mean using the XORed shared secret in place of the (EC)DHE input to the second call to `HKDF-Extract` in the TLS 1.3 key schedule.
+Each party feeds the shared secrets established by each component algorithm in an agreed-upon order into a KDF, then feeds that through the TLS key schedule.  In the context of TLS 1.3, this would mean first applying `HKDF-Extract` to the shared secrets, then using the output in place of the (EC)DHE input to the second call to `HKDF-Extract` in the TLS 1.3 key schedule:
+
+~~~~
+                                    0
+                                    |
+                                    v
+                      PSK ->  HKDF-Extract = Early Secret
+                                    |
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+               Next-Gen             |
+                   |                v
+  (EC)DHE -> HKDF-Extract     Derive-Secret(., "derived", "")
+                   |                |
+                   v                v
+                output -----> HKDF-Extract = Handshake Secret
+                ^^^^^^              |
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+                         0 -> HKDF-Extract = Master Secret
+                                    |
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+~~~~
+
+### (Comb-XOR) XOR keys {#comb-xor}
+
+Each party XORs the shared secrets established by each component algorithm (possibly after padding secrets of different lengths), then feeds that through the TLS key schedule.  In the context of TLS 1.3, this would mean using the XORed shared secret in place of the (EC)DHE input to the second call to `HKDF-Extract` in the TLS 1.3 key schedule.
 
 {{GIACON}} analyzes the security of applying a KDF to the XORed KEM shared secrets, but their analysis does not quite apply here since the transcript of ciphertexts is included in the KDF application (though it should follow relatively straightforwardly).
 
@@ -487,11 +523,11 @@ This approach is not taken in any of the known post-quantum/hybrid TLS drafts.  
 
 ### Benefits and Drawbacks
 
-**New logic.**  While [(Comb-Concat)](#comb-concat) requires new logic to compute the concatenated shared secret, this value can then be used by the TLS 1.3 key schedule without changes to the key schedule logic.  In contrast, [(Comb-Chain)](#comb-chain) requires the TLS 1.3 key schedule to be extended for each extra component algorithm.  
+**New logic.**  While [(Comb-Concat)](#comb-concat) and [(Comb-KDF)](#comb-kdf) requires new logic to compute the concatenated shared secret, this value can then be used by the TLS 1.3 key schedule without changes to the key schedule logic.  In contrast, [(Comb-Chain)](#comb-chain) requires the TLS 1.3 key schedule to be extended for each extra component algorithm.  
 
 **Philosophical.**  The TLS 1.3 key schedule already applies a new stage for different types of keying material (PSK versus (EC)DHE), so [(Comb-Chain)](#comb-chain) continues that approach.
 
-**Efficiency.** [(Comb-Chain)](#comb-chain) increases the number of KDF applications for each component algorithm, whereas [(Comb-Concat)](#comb-concat) and [(Comb-AltInput)](#comb-altinput) keep the number of KDF applications the same (though with potentially longer inputs).
+**Efficiency.** [(Comb-KDF)](#comb-kdf) and [(Comb-Chain)](#comb-chain) increase the number of KDF applications for each component algorithm, whereas [(Comb-Concat)](#comb-concat) and [(Comb-AltInput)](#comb-altinput) keep the number of KDF applications the same (though with potentially longer inputs).
 
 **Extensibility.**  [(Comb-AltInput)](#comb-altinput) changes the use of an existing input, which might conflict with other future changes to the use of the input.
 
@@ -526,5 +562,7 @@ Some post-quantum key exchange algorithms have non-trivial failure rates: two ho
 # Acknowledgements
 
 These ideas have grown from discussions with many colleagues, including Christopher Wood, Matt Campagna, and authors of the various hybrid Internet-Drafts and implementations cited in this document.  The immediate impetus for this document came from discussions with attendees at the Workshop on Post-Quantum Software in Mountain View, California, in January 2019.
+
+Martin Thomson suggested the [(Comb-KDF)](#comb-kdf) approach.
 
 --- back
