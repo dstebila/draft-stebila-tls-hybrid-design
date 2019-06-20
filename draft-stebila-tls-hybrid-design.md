@@ -14,7 +14,7 @@ pi: [toc, sortrefs, symrefs]
 author:
   -
     ins: D. Stebila
-    name: Douglas Steblia
+    name: Douglas Stebila
     organization: University of Waterloo
     email: dstebila@uwaterloo.ca
   -
