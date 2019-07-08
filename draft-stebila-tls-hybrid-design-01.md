@@ -1,7 +1,7 @@
 ---
 title: Design issues for hybrid key exchange in TLS 1.3
 abbrev: stebila-tls-hybrid-design
-docname: draft-stebila-tls-hybrid-design-latest
+docname: draft-stebila-tls-hybrid-design-01
 date: 2019-07-08
 category: info
 
