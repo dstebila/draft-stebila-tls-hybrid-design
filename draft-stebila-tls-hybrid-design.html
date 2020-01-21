@@ -5,7 +5,7 @@
 <head profile="http://www.w3.org/2006/03/hcard http://dublincore.org/documents/2008/08/04/dc-html/">
   <meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
 
-  <title>Design issues for hybrid key exchange in TLS 1.3</title>
+  <title>Hybrid key exchange in TLS 1.3</title>
 
   
 <style type="text/css">/*<![CDATA[*/
@@ -289,53 +289,41 @@ ul.toc li {
 <link href="#rfc.section.1.4" rel="Chapter" title="1.4 Scope">
 <link href="#rfc.section.1.5" rel="Chapter" title="1.5 Goals">
 <link href="#rfc.section.1.6" rel="Chapter" title="1.6 Related work">
-<link href="#rfc.section.2" rel="Chapter" title="2 Overview">
-<link href="#rfc.section.3" rel="Chapter" title="3 Design options">
-<link href="#rfc.section.3.1" rel="Chapter" title="3.1 (Neg) How to negotiate hybridization and component algorithms?">
-<link href="#rfc.section.3.1.1" rel="Chapter" title="3.1.1 Key exchange negotiation in TLS 1.3">
-<link href="#rfc.section.3.1.2" rel="Chapter" title="3.1.2 (Neg-Ind) Negotiating component algorithms individually">
-<link href="#rfc.section.3.1.3" rel="Chapter" title="3.1.3 (Neg-Comb) Negotiating component algorithms as a combination">
-<link href="#rfc.section.3.1.4" rel="Chapter" title="3.1.4 Benefits and drawbacks">
-<link href="#rfc.section.3.2" rel="Chapter" title="3.2 (Num) How many component algorithms to combine?">
-<link href="#rfc.section.3.2.1" rel="Chapter" title="3.2.1 (Num-2) Two">
-<link href="#rfc.section.3.2.2" rel="Chapter" title="3.2.2 (Num-2+) Two or more">
-<link href="#rfc.section.3.2.3" rel="Chapter" title="3.2.3 Benefits and Drawbacks">
-<link href="#rfc.section.3.3" rel="Chapter" title="3.3 (Shares) How to convey key shares?">
-<link href="#rfc.section.3.3.1" rel="Chapter" title="3.3.1 (Shares-Concat) Concatenate key shares">
-<link href="#rfc.section.3.3.2" rel="Chapter" title="3.3.2 (Shares-Multiple) Send multiple key shares">
-<link href="#rfc.section.3.3.3" rel="Chapter" title="3.3.3 (Shares-Ext-Additional) Extension carrying additional key shares">
-<link href="#rfc.section.3.3.4" rel="Chapter" title="3.3.4 Benefits and Drawbacks">
-<link href="#rfc.section.3.4" rel="Chapter" title="3.4 (Comb) How to use keys?">
-<link href="#rfc.section.3.4.1" rel="Chapter" title="3.4.1 (Comb-Concat) Concatenate keys">
-<link href="#rfc.section.3.4.2" rel="Chapter" title="3.4.2 (Comb-KDF-1) KDF keys">
-<link href="#rfc.section.3.4.3" rel="Chapter" title="3.4.3 (Comb-KDF-2) KDF keys">
-<link href="#rfc.section.3.4.4" rel="Chapter" title="3.4.4 (Comb-XOR) XOR keys">
-<link href="#rfc.section.3.4.5" rel="Chapter" title="3.4.5 (Comb-Chain) Chain of KDF applications for each key">
-<link href="#rfc.section.3.4.6" rel="Chapter" title="3.4.6 (Comb-AltInput) Second shared secret in an alternate KDF input">
-<link href="#rfc.section.3.4.7" rel="Chapter" title="3.4.7 Benefits and Drawbacks">
-<link href="#rfc.section.3.4.8" rel="Chapter" title="3.4.8 Open questions">
-<link href="#rfc.section.4" rel="Chapter" title="4 Candidate instantiations">
-<link href="#rfc.section.4.1" rel="Chapter" title="4.1 Candidate Instantiation 1">
-<link href="#rfc.section.4.1.1" rel="Chapter" title="4.1.1 ClientHello extension supported_groups">
-<link href="#rfc.section.4.1.2" rel="Chapter" title="4.1.2 ClientHello extension hybrid_extension">
-<link href="#rfc.section.4.1.3" rel="Chapter" title="4.1.3 ClientHello extension key_share">
-<link href="#rfc.section.4.1.4" rel="Chapter" title="4.1.4 ServerHello extension KeyShareServerHello">
-<link href="#rfc.section.4.1.5" rel="Chapter" title="4.1.5 Key schedule">
-<link href="#rfc.section.4.2" rel="Chapter" title="4.2 Candidate Instantiation 2">
-<link href="#rfc.section.4.2.1" rel="Chapter" title="4.2.1 ClientHello extension supported_groups">
-<link href="#rfc.section.4.2.2" rel="Chapter" title="4.2.2 ClientHello extension KeyShareClientHello">
-<link href="#rfc.section.4.2.3" rel="Chapter" title="4.2.3 ServerHello extension KeyShareServerHello">
-<link href="#rfc.section.4.2.4" rel="Chapter" title="4.2.4 Key schedule">
-<link href="#rfc.section.4.3" rel="Chapter" title="4.3 Comparing Candidate Instantiation 1 and 2">
+<link href="#rfc.section.2" rel="Chapter" title="2 Key encapsulation mechanisms">
+<link href="#rfc.section.3" rel="Chapter" title="3 Construction for hybrid key exchange">
+<link href="#rfc.section.3.1" rel="Chapter" title="3.1 Negotiation">
+<link href="#rfc.section.3.2" rel="Chapter" title="3.2 Transmitting public keys and ciphertexts">
+<link href="#rfc.section.3.3" rel="Chapter" title="3.3 Shared secret calculation">
+<link href="#rfc.section.4" rel="Chapter" title="4 Open questions">
 <link href="#rfc.section.5" rel="Chapter" title="5 IANA Considerations">
 <link href="#rfc.section.6" rel="Chapter" title="6 Security Considerations">
-<link href="#rfc.section.6.1" rel="Chapter" title="6.1 Active security">
-<link href="#rfc.section.6.2" rel="Chapter" title="6.2 Resumption">
-<link href="#rfc.section.6.3" rel="Chapter" title="6.3 Failures">
 <link href="#rfc.section.7" rel="Chapter" title="7 Acknowledgements">
 <link href="#rfc.references" rel="Chapter" title="8 References">
 <link href="#rfc.references.1" rel="Chapter" title="8.1 Normative References">
 <link href="#rfc.references.2" rel="Chapter" title="8.2 Informative References">
+<link href="#rfc.appendix.A" rel="Chapter" title="A Design Considerations">
+<link href="#rfc.appendix.A.1" rel="Chapter" title="A.1 (Neg) How to negotiate hybridization and component algorithms?">
+<link href="#rfc.appendix.A.1.1" rel="Chapter" title="A.1.1 Key exchange negotiation in TLS 1.3">
+<link href="#rfc.appendix.A.1.2" rel="Chapter" title="A.1.2 (Neg-Ind) Negotiating component algorithms individually">
+<link href="#rfc.appendix.A.1.3" rel="Chapter" title="A.1.3 (Neg-Comb) Negotiating component algorithms as a combination">
+<link href="#rfc.appendix.A.1.4" rel="Chapter" title="A.1.4 Benefits and drawbacks">
+<link href="#rfc.appendix.A.2" rel="Chapter" title="A.2 (Num) How many component algorithms to combine?">
+<link href="#rfc.appendix.A.2.1" rel="Chapter" title="A.2.1 (Num-2) Two">
+<link href="#rfc.appendix.A.2.2" rel="Chapter" title="A.2.2 (Num-2+) Two or more">
+<link href="#rfc.appendix.A.2.3" rel="Chapter" title="A.2.3 Benefits and Drawbacks">
+<link href="#rfc.appendix.A.3" rel="Chapter" title="A.3 (Shares) How to convey key shares?">
+<link href="#rfc.appendix.A.3.1" rel="Chapter" title="A.3.1 (Shares-Concat) Concatenate key shares">
+<link href="#rfc.appendix.A.3.2" rel="Chapter" title="A.3.2 (Shares-Multiple) Send multiple key shares">
+<link href="#rfc.appendix.A.3.3" rel="Chapter" title="A.3.3 (Shares-Ext-Additional) Extension carrying additional key shares">
+<link href="#rfc.appendix.A.3.4" rel="Chapter" title="A.3.4 Benefits and Drawbacks">
+<link href="#rfc.appendix.A.4" rel="Chapter" title="A.4 (Comb) How to use keys?">
+<link href="#rfc.appendix.A.4.1" rel="Chapter" title="A.4.1 (Comb-Concat) Concatenate keys">
+<link href="#rfc.appendix.A.4.2" rel="Chapter" title="A.4.2 (Comb-KDF-1) KDF keys">
+<link href="#rfc.appendix.A.4.3" rel="Chapter" title="A.4.3 (Comb-KDF-2) KDF keys">
+<link href="#rfc.appendix.A.4.4" rel="Chapter" title="A.4.4 (Comb-XOR) XOR keys">
+<link href="#rfc.appendix.A.4.5" rel="Chapter" title="A.4.5 (Comb-Chain) Chain of KDF applications for each key">
+<link href="#rfc.appendix.A.4.6" rel="Chapter" title="A.4.6 (Comb-AltInput) Second shared secret in an alternate KDF input">
+<link href="#rfc.appendix.A.4.7" rel="Chapter" title="A.4.7 Benefits and Drawbacks">
 <link href="#rfc.authors" rel="Chapter">
 
 
@@ -344,9 +332,9 @@ ul.toc li {
 
   <meta name="dct.creator" content="Stebila, D., Fluhrer, S., and S. Gueron" />
   <meta name="dct.identifier" content="urn:ietf:id:draft-stebila-tls-hybrid-design-latest" />
-  <meta name="dct.issued" scheme="ISO8601" content="2019-07-08" />
-  <meta name="dct.abstract" content="Hybrid key exchange refers to using multiple key exchange algorithms simultaneously and combining the result with the goal of providing security even if all but one of the component algorithms is broken, and is motivated by transition to post-quantum cryptography.  This document categorizes various design considerations for using hybrid key exchange in the Transport Layer Security (TLS) protocol version 1.3 and outlines two concrete instantiations for consideration." />
-  <meta name="description" content="Hybrid key exchange refers to using multiple key exchange algorithms simultaneously and combining the result with the goal of providing security even if all but one of the component algorithms is broken, and is motivated by transition to post-quantum cryptography.  This document categorizes various design considerations for using hybrid key exchange in the Transport Layer Security (TLS) protocol version 1.3 and outlines two concrete instantiations for consideration." />
+  <meta name="dct.issued" scheme="ISO8601" content="2020-01-21" />
+  <meta name="dct.abstract" content="Hybrid key exchange refers to using multiple key exchange algorithms simultaneously and combining the result with the goal of providing security even if all but one of the component algorithms is broken, and is motivated by transition to post-quantum cryptography.  This document provides a construction for hybrid key exchange in the Transport Layer Security (TLS) protocol version 1.3." />
+  <meta name="description" content="Hybrid key exchange refers to using multiple key exchange algorithms simultaneously and combining the result with the goal of providing security even if all but one of the component algorithms is broken, and is motivated by transition to post-quantum cryptography.  This document provides a construction for hybrid key exchange in the Transport Layer Security (TLS) protocol version 1.3." />
 
 </head>
 
@@ -368,7 +356,7 @@ ul.toc li {
 <td class="right">S. Fluhrer</td>
 </tr>
 <tr>
-<td class="left">Expires: January 9, 2020</td>
+<td class="left">Expires: July 24, 2020</td>
 <td class="right">Cisco Systems</td>
 </tr>
 <tr>
@@ -381,25 +369,25 @@ ul.toc li {
 </tr>
 <tr>
 <td class="left"></td>
-<td class="right">July 08, 2019</td>
+<td class="right">January 21, 2020</td>
 </tr>
 
     	
     </tbody>
   </table>
 
-  <p class="title">Design issues for hybrid key exchange in TLS 1.3<br />
+  <p class="title">Hybrid key exchange in TLS 1.3<br />
   <span class="filename">draft-stebila-tls-hybrid-design-latest</span></p>
   
   <h1 id="rfc.abstract"><a href="#rfc.abstract">Abstract</a></h1>
-<p>Hybrid key exchange refers to using multiple key exchange algorithms simultaneously and combining the result with the goal of providing security even if all but one of the component algorithms is broken, and is motivated by transition to post-quantum cryptography.  This document categorizes various design considerations for using hybrid key exchange in the Transport Layer Security (TLS) protocol version 1.3 and outlines two concrete instantiations for consideration.</p>
+<p>Hybrid key exchange refers to using multiple key exchange algorithms simultaneously and combining the result with the goal of providing security even if all but one of the component algorithms is broken, and is motivated by transition to post-quantum cryptography.  This document provides a construction for hybrid key exchange in the Transport Layer Security (TLS) protocol version 1.3.</p>
 <h1 id="rfc.status"><a href="#rfc.status">Status of This Memo</a></h1>
 <p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
 <p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at https://datatracker.ietf.org/drafts/current/.</p>
 <p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
-<p>This Internet-Draft will expire on January 9, 2020.</p>
+<p>This Internet-Draft will expire on July 24, 2020.</p>
 <h1 id="rfc.copyrightnotice"><a href="#rfc.copyrightnotice">Copyright Notice</a></h1>
-<p>Copyright (c) 2019 IETF Trust and the persons identified as the document authors.  All rights reserved.</p>
+<p>Copyright (c) 2020 IETF Trust and the persons identified as the document authors.  All rights reserved.</p>
 <p>This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents (https://trustee.ietf.org/license-info) in effect on the date of publication of this document.  Please review these documents carefully, as they describe your rights and restrictions with respect to this document.  Code Components extracted from this document must include Simplified BSD License text as described in Section 4.e of the Trust Legal Provisions and are provided without warranty as described in the Simplified BSD License.</p>
 
   
@@ -421,93 +409,23 @@ ul.toc li {
 </li>
 <li>1.6.   <a href="#rfc.section.1.6">Related work</a>
 </li>
-</ul><li>2.   <a href="#rfc.section.2">Overview</a>
+</ul><li>2.   <a href="#rfc.section.2">Key encapsulation mechanisms</a>
 </li>
-<li>3.   <a href="#rfc.section.3">Design options</a>
+<li>3.   <a href="#rfc.section.3">Construction for hybrid key exchange</a>
 </li>
-<ul><li>3.1.   <a href="#rfc.section.3.1">(Neg) How to negotiate hybridization and component algorithms?</a>
+<ul><li>3.1.   <a href="#rfc.section.3.1">Negotiation</a>
 </li>
-<ul><li>3.1.1.   <a href="#rfc.section.3.1.1">Key exchange negotiation in TLS 1.3</a>
+<li>3.2.   <a href="#rfc.section.3.2">Transmitting public keys and ciphertexts</a>
 </li>
-<li>3.1.2.   <a href="#rfc.section.3.1.2">(Neg-Ind) Negotiating component algorithms individually</a>
+<li>3.3.   <a href="#rfc.section.3.3">Shared secret calculation</a>
 </li>
-<li>3.1.3.   <a href="#rfc.section.3.1.3">(Neg-Comb) Negotiating component algorithms as a combination</a>
+</ul><li>4.   <a href="#rfc.section.4">Open questions</a>
 </li>
-<li>3.1.4.   <a href="#rfc.section.3.1.4">Benefits and drawbacks</a>
-</li>
-</ul><li>3.2.   <a href="#rfc.section.3.2">(Num) How many component algorithms to combine?</a>
-</li>
-<ul><li>3.2.1.   <a href="#rfc.section.3.2.1">(Num-2) Two</a>
-</li>
-<li>3.2.2.   <a href="#rfc.section.3.2.2">(Num-2+) Two or more</a>
-</li>
-<li>3.2.3.   <a href="#rfc.section.3.2.3">Benefits and Drawbacks</a>
-</li>
-</ul><li>3.3.   <a href="#rfc.section.3.3">(Shares) How to convey key shares?</a>
-</li>
-<ul><li>3.3.1.   <a href="#rfc.section.3.3.1">(Shares-Concat) Concatenate key shares</a>
-</li>
-<li>3.3.2.   <a href="#rfc.section.3.3.2">(Shares-Multiple) Send multiple key shares</a>
-</li>
-<li>3.3.3.   <a href="#rfc.section.3.3.3">(Shares-Ext-Additional) Extension carrying additional key shares</a>
-</li>
-<li>3.3.4.   <a href="#rfc.section.3.3.4">Benefits and Drawbacks</a>
-</li>
-</ul><li>3.4.   <a href="#rfc.section.3.4">(Comb) How to use keys?</a>
-</li>
-<ul><li>3.4.1.   <a href="#rfc.section.3.4.1">(Comb-Concat) Concatenate keys</a>
-</li>
-<li>3.4.2.   <a href="#rfc.section.3.4.2">(Comb-KDF-1) KDF keys</a>
-</li>
-<li>3.4.3.   <a href="#rfc.section.3.4.3">(Comb-KDF-2) KDF keys</a>
-</li>
-<li>3.4.4.   <a href="#rfc.section.3.4.4">(Comb-XOR) XOR keys</a>
-</li>
-<li>3.4.5.   <a href="#rfc.section.3.4.5">(Comb-Chain) Chain of KDF applications for each key</a>
-</li>
-<li>3.4.6.   <a href="#rfc.section.3.4.6">(Comb-AltInput) Second shared secret in an alternate KDF input</a>
-</li>
-<li>3.4.7.   <a href="#rfc.section.3.4.7">Benefits and Drawbacks</a>
-</li>
-<li>3.4.8.   <a href="#rfc.section.3.4.8">Open questions</a>
-</li>
-</ul></ul><li>4.   <a href="#rfc.section.4">Candidate instantiations</a>
-</li>
-<ul><li>4.1.   <a href="#rfc.section.4.1">Candidate Instantiation 1</a>
-</li>
-<ul><li>4.1.1.   <a href="#rfc.section.4.1.1">ClientHello extension supported_groups</a>
-</li>
-<li>4.1.2.   <a href="#rfc.section.4.1.2">ClientHello extension hybrid_extension</a>
-</li>
-<li>4.1.3.   <a href="#rfc.section.4.1.3">ClientHello extension key_share</a>
-</li>
-<li>4.1.4.   <a href="#rfc.section.4.1.4">ServerHello extension KeyShareServerHello</a>
-</li>
-<li>4.1.5.   <a href="#rfc.section.4.1.5">Key schedule</a>
-</li>
-</ul><li>4.2.   <a href="#rfc.section.4.2">Candidate Instantiation 2</a>
-</li>
-<ul><li>4.2.1.   <a href="#rfc.section.4.2.1">ClientHello extension supported_groups</a>
-</li>
-<li>4.2.2.   <a href="#rfc.section.4.2.2">ClientHello extension KeyShareClientHello</a>
-</li>
-<li>4.2.3.   <a href="#rfc.section.4.2.3">ServerHello extension KeyShareServerHello</a>
-</li>
-<li>4.2.4.   <a href="#rfc.section.4.2.4">Key schedule</a>
-</li>
-</ul><li>4.3.   <a href="#rfc.section.4.3">Comparing Candidate Instantiation 1 and 2</a>
-</li>
-</ul><li>5.   <a href="#rfc.section.5">IANA Considerations</a>
+<li>5.   <a href="#rfc.section.5">IANA Considerations</a>
 </li>
 <li>6.   <a href="#rfc.section.6">Security Considerations</a>
 </li>
-<ul><li>6.1.   <a href="#rfc.section.6.1">Active security</a>
-</li>
-<li>6.2.   <a href="#rfc.section.6.2">Resumption</a>
-</li>
-<li>6.3.   <a href="#rfc.section.6.3">Failures</a>
-</li>
-</ul><li>7.   <a href="#rfc.section.7">Acknowledgements</a>
+<li>7.   <a href="#rfc.section.7">Acknowledgements</a>
 </li>
 <li>8.   <a href="#rfc.references">References</a>
 </li>
@@ -515,7 +433,53 @@ ul.toc li {
 </li>
 <li>8.2.   <a href="#rfc.references.2">Informative References</a>
 </li>
-</ul><li><a href="#rfc.authors">Authors' Addresses</a>
+</ul><li>Appendix A.   <a href="#rfc.appendix.A">Design Considerations</a>
+</li>
+<ul><li>A.1.   <a href="#rfc.appendix.A.1">(Neg) How to negotiate hybridization and component algorithms?</a>
+</li>
+<ul><li>A.1.1.   <a href="#rfc.appendix.A.1.1">Key exchange negotiation in TLS 1.3</a>
+</li>
+<li>A.1.2.   <a href="#rfc.appendix.A.1.2">(Neg-Ind) Negotiating component algorithms individually</a>
+</li>
+<li>A.1.3.   <a href="#rfc.appendix.A.1.3">(Neg-Comb) Negotiating component algorithms as a combination</a>
+</li>
+<li>A.1.4.   <a href="#rfc.appendix.A.1.4">Benefits and drawbacks</a>
+</li>
+</ul><li>A.2.   <a href="#rfc.appendix.A.2">(Num) How many component algorithms to combine?</a>
+</li>
+<ul><li>A.2.1.   <a href="#rfc.appendix.A.2.1">(Num-2) Two</a>
+</li>
+<li>A.2.2.   <a href="#rfc.appendix.A.2.2">(Num-2+) Two or more</a>
+</li>
+<li>A.2.3.   <a href="#rfc.appendix.A.2.3">Benefits and Drawbacks</a>
+</li>
+</ul><li>A.3.   <a href="#rfc.appendix.A.3">(Shares) How to convey key shares?</a>
+</li>
+<ul><li>A.3.1.   <a href="#rfc.appendix.A.3.1">(Shares-Concat) Concatenate key shares</a>
+</li>
+<li>A.3.2.   <a href="#rfc.appendix.A.3.2">(Shares-Multiple) Send multiple key shares</a>
+</li>
+<li>A.3.3.   <a href="#rfc.appendix.A.3.3">(Shares-Ext-Additional) Extension carrying additional key shares</a>
+</li>
+<li>A.3.4.   <a href="#rfc.appendix.A.3.4">Benefits and Drawbacks</a>
+</li>
+</ul><li>A.4.   <a href="#rfc.appendix.A.4">(Comb) How to use keys?</a>
+</li>
+<ul><li>A.4.1.   <a href="#rfc.appendix.A.4.1">(Comb-Concat) Concatenate keys</a>
+</li>
+<li>A.4.2.   <a href="#rfc.appendix.A.4.2">(Comb-KDF-1) KDF keys</a>
+</li>
+<li>A.4.3.   <a href="#rfc.appendix.A.4.3">(Comb-KDF-2) KDF keys</a>
+</li>
+<li>A.4.4.   <a href="#rfc.appendix.A.4.4">(Comb-XOR) XOR keys</a>
+</li>
+<li>A.4.5.   <a href="#rfc.appendix.A.4.5">(Comb-Chain) Chain of KDF applications for each key</a>
+</li>
+<li>A.4.6.   <a href="#rfc.appendix.A.4.6">(Comb-AltInput) Second shared secret in an alternate KDF input</a>
+</li>
+<li>A.4.7.   <a href="#rfc.appendix.A.4.7">Benefits and Drawbacks</a>
+</li>
+</ul></ul><li><a href="#rfc.authors">Authors' Addresses</a>
 </li>
 
 
@@ -524,9 +488,10 @@ ul.toc li {
   <h1 id="rfc.section.1">
 <a href="#rfc.section.1">1.</a> <a href="#introduction" id="introduction">Introduction</a>
 </h1>
-<p id="rfc.section.1.p.1">This document categorizes various design decisions one could make when implementing hybrid key exchange in TLS 1.3, with the goal of fostering discussion, providing options for short-term prototypes/experiments, and serving as a basis for eventual standardization.  This document also includes two concrete instantiations for consideration, following two different approaches; it is not our intention that both be standardized.</p>
-<p id="rfc.section.1.p.2">This document does not propose specific post-quantum mechanisms; see <a href="#scope" class="xref">Section 1.4</a> for more on the scope of this document.</p>
-<p id="rfc.section.1.p.3">Comments are solicited and should be addressed to the TLS working group mailing list at tls@ietf.org and/or the author(s).</p>
+<p id="rfc.section.1.p.1">This document gives a construction for implementing hybrid key exchange in TLS 1.3.  The overall design approach is a simple, &#8220;concatenation&#8221;-based approach: each hybrid key exchange combination should be viewed as a single new key exchange method, negotiated and transmitted using the existing TLS 1.3 mechanisms.</p>
+<p id="rfc.section.1.p.2">Earlier versions of this document categorized various design decisions one could make when implementing hybrid key exchange in TLS 1.3.  These have been moved to the appendix of the current draft, and will be eventually be removed.</p>
+<p id="rfc.section.1.p.3">This document does not propose specific post-quantum mechanisms; see <a href="#scope" class="xref">Section 1.4</a> for more on the scope of this document.</p>
+<p id="rfc.section.1.p.4">Comments are solicited and should be addressed to the TLS working group mailing list at tls@ietf.org and/or the author(s).</p>
 <h1 id="rfc.section.1.1">
 <a href="#rfc.section.1.1">1.1.</a> <a href="#revision-history" id="revision-history">Revision history</a>
 </h1>
@@ -536,8 +501,12 @@ ul.toc li {
 <li>draft-00: Initial version.</li>
 <li>draft-01: <ul>
 <li>Add <a href="#comb-kdf-1" class="xref">(Comb-KDF-1)</a> and <a href="#comb-kdf-2" class="xref">(Comb-KDF-2)</a> options.</li>
-<li>Add <a href="#candidate-1" class="xref">Candidate Instantiation 1</a>.</li>
-<li>Add <a href="#candidate-2" class="xref">Candidate Instantiation 2</a>.</li>
+<li>Add two candidate instantiations.</li>
+</ul>
+</li>
+<li>draft-02: <ul>
+<li>Design considerations from draft-00 and draft-01 are moved to the appendix.</li>
+<li>A single construction is given in the main body.</li>
 </ul>
 </li>
 </ul>
@@ -553,6 +522,7 @@ ul.toc li {
 </ul>
 <p id="rfc.section.1.2.p.3">&#8220;Hybrid&#8221; key exchange, in this context, means the use of two (or more) key exchange mechanisms based on different cryptographic assumptions (for example, one traditional algorithm and one next-gen algorithm), with the purpose of the final session key being secure as long as at least one of the component key exchange mechanisms remains unbroken.  We use the term &#8220;component&#8221; algorithms to refer to the algorithms that are being combined in a hybrid key exchange.</p>
 <p id="rfc.section.1.2.p.4">The primary motivation of this document is preparing for post-quantum algorithms.  However, it is possible that public key cryptography based on alternative mathematical constructions will be required independent of the advent of a quantum computer, for example because of a cryptanalytic breakthrough.  As such we opt for the more generic term &#8220;next-generation&#8221; algorithms rather than exclusively &#8220;post-quantum&#8221; algorithms.</p>
+<p id="rfc.section.1.2.p.5">Note that TLS 1.3 uses the phrase &#8220;groups&#8221; to refer to key exchange algorithms &#8211; for example, the <samp>supported_groups</samp> extension &#8211; since all key exchange algorithms in TLS 1.3 are Diffie&#8211;Hellman-based.  As a result, some parts of this document will refer to data structures or messages with the term &#8220;group&#8221; in them despite using a key exchange algorithm that is not Diffie&#8211;Hellman-based nor a group.</p>
 <h1 id="rfc.section.1.3">
 <a href="#rfc.section.1.3">1.3.</a> <a href="#motivation" id="motivation">Motivation for use of hybrid key exchange</a>
 </h1>
@@ -628,177 +598,91 @@ ul.toc li {
 <p id="rfc.section.1.6.p.8">Considering other IETF standards, there is work on post-quantum preshared keys in IKEv2 <a href="#IKE-PSK" class="xref">[IKE-PSK]</a> and a framework for hybrid key exchange in IKEv2 <a href="#IKE-HYBRID" class="xref">[IKE-HYBRID]</a>.  The XMSS hash-based signature scheme has been published as an informational RFC by the IRTF <a href="#XMSS" class="xref">[XMSS]</a>.</p>
 <p id="rfc.section.1.6.p.9">In the academic literature, <a href="#EVEN" class="xref">[EVEN]</a> initiated the study of combining multiple symmetric encryption schemes; <a href="#ZHANG" class="xref">[ZHANG]</a>, <a href="#DODIS" class="xref">[DODIS]</a>, and <a href="#HARNIK" class="xref">[HARNIK]</a> examined combining multiple public key encryption schemes, and <a href="#HARNIK" class="xref">[HARNIK]</a> coined the term &#8220;robust combiner&#8221; to refer to a compiler that constructs a hybrid scheme from individual schemes while preserving security properties.  <a href="#GIACON" class="xref">[GIACON]</a> and <a href="#BINDEL" class="xref">[BINDEL]</a> examined combining multiple key encapsulation mechanisms.</p>
 <h1 id="rfc.section.2">
-<a href="#rfc.section.2">2.</a> <a href="#overview" id="overview">Overview</a>
+<a href="#rfc.section.2">2.</a> <a href="#key-encapsulation-mechanisms" id="key-encapsulation-mechanisms">Key encapsulation mechanisms</a>
 </h1>
-<p id="rfc.section.2.p.1">We identify four distinct axes along which one can make choices when integrating hybrid key exchange into TLS 1.3:</p>
+<p id="rfc.section.2.p.1">In the context of the NIST Post-Quantum Cryptography Standardization Project, key exchange algorithms are formulated as key encapsulation mechanisms (KEMs), which consist of three algorithms:</p>
 <p></p>
 
-<ol>
-<li>How to negotiate the use of hybridization in general and component algorithms specifically?</li>
-<li>How many component algorithms can be combined?</li>
-<li>How should multiple key shares (public keys / ciphertexts) be conveyed?</li>
-<li>How should multiple shared secrets be combined?</li>
-</ol>
-<p id="rfc.section.2.p.3">The remainder of this document outlines various options we have identified for each of these choices.  Immediately below we provide a summary list.  Options are labelled with a short code in parentheses to provide easy cross-referencing.</p>
-<p></p>
-
-<ol>
+<ul>
 <li>
-<a href="#neg" class="xref">(Neg)</a> How to negotiate the use of hybridization in general and component algorithms specifically?  <ul>
+<samp>KeyGen() -&gt; (pk, sk)</samp>: A probabilistic key generation algorithm, which generates a public key <samp>pk</samp> and a secret key <samp>sk</samp>.</li>
 <li>
-<a href="#neg-ind" class="xref">(Neg-Ind)</a> Negotiating component algorithms individually      <ul>
+<samp>Encaps(pk) -&gt; (ct, ss)</samp>: A probabilistic encapsulation algorithm, which takes as input a public key <samp>pk</samp> and outputs a ciphertext <samp>ct</samp> and shared secret <samp>ss</samp>.</li>
 <li>
-<a href="#neg-ind-1" class="xref">(Neg-Ind-1)</a> Traditional algorithms in <samp>ClientHello</samp> <samp>supported_groups</samp> extension, next-gen algorithms in another extension</li>
-<li>
-<a href="#neg-ind-2" class="xref">(Neg-Ind-2)</a> Both types of algorithms in <samp>supported_groups</samp> with external mapping to tradition/next-gen.</li>
-<li>
-<a href="#neg-ind-3" class="xref">(Neg-Ind-3)</a> Both types of algorithms in <samp>supported_groups</samp> separated by a delimiter.</li>
+<samp>Decaps(sk, ct) -&gt; ss</samp>: A decapsulation algorithm, which takes as input a secret key <samp>sk</samp> and ciphertext <samp>ct</samp> and outputs a shared secret <samp>ss</samp>, or in some cases a distinguished error value.</li>
 </ul>
-</li>
-<li>
-<a href="#neg-comb" class="xref">(Neg-Comb)</a> Negotiating component algorithms as a combination      <ul>
-<li>
-<a href="#neg-comb-1" class="xref">(Neg-Comb-1)</a> Standardize <samp>NamedGroup</samp> identifiers for each desired combination.</li>
-<li>
-<a href="#neg-comb-2" class="xref">(Neg-Comb-2)</a> Use placeholder identifiers in <samp>supported_groups</samp> with an extension defining the combination corresponding to each placeholder.</li>
-<li>
-<a href="#neg-comb-3" class="xref">(Neg-Comb-3)</a> List combinations by inserting grouping delimiters into <samp>supported_groups</samp> list.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<a href="#num" class="xref">(Num)</a> How many component algorithms can be combined?  <ul>
-<li>
-<a href="#num-2" class="xref">(Num-2)</a> Two.</li>
-<li>
-<a href="#num-2-plus" class="xref">(Num-2+)</a> Two or more.</li>
-</ul>
-</li>
-<li>
-<a href="#shares" class="xref">(Shares)</a> How should multiple key shares (public keys / ciphertexts) be conveyed?  <ul>
-<li>
-<a href="#shares-concat" class="xref">(Shares-Concat)</a> Concatenate each combination of key shares.</li>
-<li>
-<a href="#shares-multiple" class="xref">(Shares-Multiple)</a> Send individual key shares for each algorithm.</li>
-<li>
-<a href="#shares-ext-additional" class="xref">(Shares-Ext-Additional)</a> Use an extension to convey key shares for component algorithms.</li>
-</ul>
-</li>
-<li>
-<a href="#comb" class="xref">(Comb)</a> How should multiple shared secrets be combined?  <ul>
-<li>
-<a href="#comb-concat" class="xref">(Comb-Concat)</a> Concatenate the shared secrets then use directly in the TLS 1.3 key schedule.</li>
-<li>
-<a href="#comb-kdf-1" class="xref">(Comb-KDF-1)</a> and <a href="#comb-kdf-2" class="xref">(Comb-KDF-2)</a> KDF the shared secrets together, then use the output in the TLS 1.3 key schedule.</li>
-<li>
-<a href="#comb-xor" class="xref">(Comb-XOR)</a> XOR the shared secrets then use directly in the TLS 1.3 key schedule.</li>
-<li>
-<a href="#comb-chain" class="xref">(Comb-Chain)</a> Extend the TLS 1.3 key schedule so that there is a stage of the key schedule for each shared secret.</li>
-<li>
-<a href="#comb-altinput" class="xref">(Comb-AltInput)</a> Use the second shared secret in an alternate (otherwise unused) input in the TLS 1.3 key schedule.</li>
-</ul>
-</li>
-</ol>
+<p id="rfc.section.2.p.3">The main security property for KEMs is indistinguishability under adaptive chosen ciphertext attack (IND-CCA2), which means that shared secret values should be indistinguishable from random strings even given the ability to have arbitrary ciphertexts decapsulated.  IND-CCA2 corresponds to security against an active attacker, and the public key / secret key pair can be treated as a long-term key or reused.  A weaker security notion is indistinguishability under chosen plaintext attack (IND-CPA), which means that the shared secret values should be indistinguishable from random strings given a copy of the public key.  IND-CPA roughly corresponds to security against a passive attacker, and sometimes corresponds to ephemeral key exchange.</p>
+<p id="rfc.section.2.p.4">Key exchange in TLS 1.3 is phrased in terms of Diffie&#8211;Hellman key exchange in a group.  DH key exchange can be modeled as a KEM, with <samp>KeyGen</samp> corresponding to selecting an exponent <samp>x</samp> as the secret key and computing the public key <samp>g^x</samp>; encapsulation corresponding to selecting an exponent <samp>y</samp>, computing the ciphertext <samp>g^y</samp> and the shared secret <samp>g^(xy)</samp>, and decapsulation as computing the shared secret <samp>g^(xy)</samp>.</p>
 <h1 id="rfc.section.3">
-<a href="#rfc.section.3">3.</a> <a href="#design-options" id="design-options">Design options</a>
+<a href="#rfc.section.3">3.</a> <a href="#construction" id="construction">Construction for hybrid key exchange</a>
 </h1>
 <h1 id="rfc.section.3.1">
-<a href="#rfc.section.3.1">3.1.</a> <a href="#neg" id="neg">(Neg) How to negotiate hybridization and component algorithms?</a>
+<a href="#rfc.section.3.1">3.1.</a> <a href="#construction-negotiation" id="construction-negotiation">Negotiation</a>
 </h1>
-<h1 id="rfc.section.3.1.1">
-<a href="#rfc.section.3.1.1">3.1.1.</a> <a href="#key-exchange-negotiation-in-tls-13" id="key-exchange-negotiation-in-tls-13">Key exchange negotiation in TLS 1.3</a>
-</h1>
-<p id="rfc.section.3.1.1.p.1">Recall that in TLS 1.3, the key exchange mechanism is negotiated via the <samp>supported_groups</samp> extension.  The <samp>NamedGroup</samp> enum is a list of standardized groups for Diffie&#8211;Hellman key exchange, such as <samp>secp256r1</samp>, <samp>x25519</samp>, and <samp>ffdhe2048</samp>.</p>
-<p id="rfc.section.3.1.1.p.2">The client, in its <samp>ClientHello</samp> message, lists its supported mechanisms in the <samp>supported_groups</samp> extension.  The client also optionally includes the public key of one or more of these groups in the <samp>key_share</samp> extension as a guess of which mechanisms the server might accept in hopes of reducing the number of round trips.</p>
-<p id="rfc.section.3.1.1.p.3">If the server is willing to use one of the client&#8217;s requested mechanisms, it responds with a <samp>key_share</samp> extension containing its public key for the desired mechanism.</p>
-<p id="rfc.section.3.1.1.p.4">If the server is not willing to use any of the client&#8217;s requested mechanisms, the server responds with a <samp>HelloRetryRequest</samp> message that includes an extension indicating its preferred mechanism.</p>
-<h1 id="rfc.section.3.1.2">
-<a href="#rfc.section.3.1.2">3.1.2.</a> <a href="#neg-ind" id="neg-ind">(Neg-Ind) Negotiating component algorithms individually</a>
-</h1>
-<p id="rfc.section.3.1.2.p.1">In these three approaches, the parties negotiate which traditional algorithm and which next-gen algorithm to use independently.  The <samp>NamedGroup</samp> enum is extended to include algorithm identifiers for each next-gen algorithm.</p>
-<h1 id="rfc.section.3.1.2.1">
-<a href="#rfc.section.3.1.2.1">3.1.2.1.</a> <a href="#neg-ind-1" id="neg-ind-1">(Neg-Ind-1)</a>
-</h1>
-<p id="rfc.section.3.1.2.1.p.1">The client advertises two lists to the server: one list containing its supported traditional mechanisms (e.g. via the existing <samp>ClientHello</samp> <samp>supported_groups</samp> extension), and a second list containing its supported next-generation mechanisms (e.g., via an additional <samp>ClientHello</samp> extension).  A server could then select one algorithm from the traditional list, and one algorithm from the next-generation list.  (This is the approach in <a href="#SCHANCK" class="xref">[SCHANCK]</a>.)</p>
-<h1 id="rfc.section.3.1.2.2">
-<a href="#rfc.section.3.1.2.2">3.1.2.2.</a> <a href="#neg-ind-2" id="neg-ind-2">(Neg-Ind-2)</a>
-</h1>
-<p id="rfc.section.3.1.2.2.p.1">The client advertises a single list to the server which contains both its traditional and next-generation mechanisms (e.g., all in the existing <samp>ClientHello</samp> <samp>supported_groups</samp> extension), but with some external table provides a standardized mapping of those mechanisms as either &#8220;traditional&#8221; or &#8220;next-generation&#8221;.  A server could then select two algorithms from this list, one from each category.</p>
-<h1 id="rfc.section.3.1.2.3">
-<a href="#rfc.section.3.1.2.3">3.1.2.3.</a> <a href="#neg-ind-3" id="neg-ind-3">(Neg-Ind-3)</a>
-</h1>
-<p id="rfc.section.3.1.2.3.p.1">The client advertises a single list to the server delimited into sublists: one for its traditional mechanisms and one for its next-generation mechanisms, all in the existing <samp>ClientHello</samp> <samp>supported_groups</samp> extension, with a special code point serving as a delimiter between the two lists.  For example, <samp>supported_groups = secp256r1, x25519, delimiter, nextgen1, nextgen4</samp>.</p>
-<h1 id="rfc.section.3.1.3">
-<a href="#rfc.section.3.1.3">3.1.3.</a> <a href="#neg-comb" id="neg-comb">(Neg-Comb) Negotiating component algorithms as a combination</a>
-</h1>
-<p id="rfc.section.3.1.3.p.1">In these three approaches, combinations of key exchange mechanisms appear as a single monolithic block; the parties negotiate which of several combinations they wish to use.</p>
-<h1 id="rfc.section.3.1.3.1">
-<a href="#rfc.section.3.1.3.1">3.1.3.1.</a> <a href="#neg-comb-1" id="neg-comb-1">(Neg-Comb-1)</a>
-</h1>
-<p id="rfc.section.3.1.3.1.p.1">The <samp>NamedGroup</samp> enum is extended to include algorithm identifiers for each <strong>combination</strong> of algorithms desired by the working group.  There is no &#8220;internal structure&#8221; to the algorithm identifiers for each combination, they are simply new code points assigned arbitrarily.  The client includes any desired combinations in its <samp>ClientHello</samp> <samp>supported_groups</samp> list, and the server picks one of these.  This is the approach in <a href="#KIEFER" class="xref">[KIEFER]</a> and <a href="#OQS-111" class="xref">[OQS-111]</a>.</p>
-<h1 id="rfc.section.3.1.3.2">
-<a href="#rfc.section.3.1.3.2">3.1.3.2.</a> <a href="#neg-comb-2" id="neg-comb-2">(Neg-Comb-2)</a>
-</h1>
-<p id="rfc.section.3.1.3.2.p.1">The <samp>NamedGroup</samp> enum is extended to include algorithm identifiers for each next-gen algorithm.  Some additional field/extension is used to convey which combinations the parties wish to use.  For example, in <a href="#WHYTE13" class="xref">[WHYTE13]</a>, there are distinguished <samp>NamedGroup</samp> called <samp>hybrid_marker 0</samp>, <samp>hybrid_marker 1</samp>, <samp>hybrid_marker 2</samp>, etc.  This is complemented by a <samp>HybridExtension</samp> which contains mappings for each numbered <samp>hybrid_marker</samp> to the set of component key exchange algorithms (2 or more) for that proposed combination.</p>
-<h1 id="rfc.section.3.1.3.3">
-<a href="#rfc.section.3.1.3.3">3.1.3.3.</a> <a href="#neg-comb-3" id="neg-comb-3">(Neg-Comb-3)</a>
-</h1>
-<p id="rfc.section.3.1.3.3.p.1">The client lists combinations in <samp>supported_groups</samp> list, using a special delimiter to indicate combinations.  For example, <samp>supported_groups = combo_delimiter, secp256r1, nextgen1, combo_delimiter, secp256r1, nextgen4, standalone_delimiter, secp256r1, x25519</samp> would indicate that the client&#8217;s highest preference is the combination secp256r1+nextgen1, the next highest preference is the combination secp2561+nextgen4, then the single algorithm secp256r1, then the single algorithm x25519.  A hybrid-aware server would be able to parse these; a hybrid-unaware server would see <samp>unknown, secp256r1, unknown, unknown, secp256r1, unknown, unknown, secp256r1, x25519</samp>, which it would be able to process, although there is the potential that every &#8220;projection&#8221; of a hybrid list that is tolerable to a client does not result in list that is tolerable to the client.</p>
-<h1 id="rfc.section.3.1.4">
-<a href="#rfc.section.3.1.4">3.1.4.</a> <a href="#benefits-and-drawbacks" id="benefits-and-drawbacks">Benefits and drawbacks</a>
-</h1>
-<p><strong>Combinatorial explosion.</strong> <a href="#neg-comb-1" class="xref">(Neg-Comb-1)</a> requires new identifiers to be defined for each desired combination.  The other 4 options in this section do not.</p>
-<p><strong>Extensions.</strong> <a href="#neg-ind-1" class="xref">(Neg-Ind-1)</a> and <a href="#neg-comb-2" class="xref">(Neg-Comb-2)</a> require new extensions to be defined.  The other options in this section do not.</p>
-<p><strong>New logic.</strong> All options in this section except <a href="#neg-comb-1" class="xref">(Neg-Comb-1)</a> require new logic to process negotiation.</p>
-<p><strong>Matching security levels.</strong> <a href="#neg-ind-1" class="xref">(Neg-Ind-1)</a>, <a href="#neg-ind-2" class="xref">(Neg-Ind-2)</a>, <a href="#neg-ind-3" class="xref">(Neg-Ind-3)</a>, and <a href="#neg-comb-2" class="xref">(Neg-Comb-2)</a> allow algorithms of different claimed security level from their corresponding lists to be combined.  For example, this could result in combining ECDH secp256r1 (classical security level 128) with NewHope-1024 (classical security level 256).  Implementations dissatisfied with a mismatched security levels must either accept this mismatch or attempt to renegotiate.  <a href="#neg-ind-1" class="xref">(Neg-Ind-1)</a>, <a href="#neg-ind-2" class="xref">(Neg-Ind-2)</a>, and <a href="#neg-ind-3" class="xref">(Neg-Ind-3)</a> give control over the combination to the server; <a href="#neg-comb-2" class="xref">(Neg-Comb-2)</a> gives control over the combination to the client.  <a href="#neg-comb-1" class="xref">(Neg-Comb-1)</a> only allows standardized combinations, which could be set by TLS working group to have matching security (provided security estimates do not evolve separately).</p>
-<p><strong>Backwards-compability.</strong> TLS 1.3-compliant hybrid-unaware servers should ignore unreocgnized elements in <samp>supported_groups</samp> <a href="#neg-ind-2" class="xref">(Neg-Ind-2)</a>, <a href="#neg-ind-3" class="xref">(Neg-Ind-3)</a>, <a href="#neg-comb-1" class="xref">(Neg-Comb-1)</a>, <a href="#neg-comb-2" class="xref">(Neg-Comb-2)</a> and unrecognized <samp>ClientHello</samp> extensions <a href="#neg-ind-1" class="xref">(Neg-Ind-1)</a>, <a href="#neg-comb-2" class="xref">(Neg-Comb-2)</a>.  In <a href="#neg-ind-3" class="xref">(Neg-Ind-3)</a> and <a href="#neg-comb-3" class="xref">(Neg-Comb-3)</a>, a server that is hybrid-unaware will ignore the delimiters in <samp>supported_groups</samp>, and thus might try to negotiate an algorithm individually that is only meant to be used in combination; depending on how such an implementation is coded, it may also encounter bugs when the same element appears multiple times in the list.</p>
+<p id="rfc.section.3.1.p.1">Each particular combination of algorithms in a hybrid key exchange will be represented as a <samp>NamedGroup</samp> and sent in the <samp>supported_groups</samp> extension.  No internal structure or grammer is implied or required in the value of the identifier; they are simply opaque identifiers.</p>
+<p id="rfc.section.3.1.p.2">Each value representing a hybrid key exchange will correspond to an ordered pair of two groups otherwise listed in the <samp>NamedGroup</samp> enum.  For example, suppose a future document specified a <samp>NamedGroup</samp> identifier for the post-quantum KEM ntruhrss701; that document could also specify that hybrid value 0x2000 corresponds to secp256r1+ntruhrss701, and 0x2001 corresponds to x25519+ntruhrss701.</p>
+<p id="rfc.section.3.1.p.3">Specific values shall be standardized by IANA in the TLS Supported Groups registry.  We suggest that values 0x2000 through 0x2EFF are suitable for hybrid key exchange methods (the leading &#8220;2&#8221; suggesting that there are 2 algorithms), noting that 0x2A2A is reserved as a GREASE value <a href="#GREASE" class="xref">[GREASE]</a>.  This document requests that values 0x2F00 through 0x2FFF be reserved for Private Use for hybrid key exchange.</p>
+<pre>
+enum {
+
+      /* Elliptic Curve Groups (ECDHE) */
+      secp256r1(0x0017), secp384r1(0x0018), secp521r1(0x0019),
+      x25519(0x001D), x448(0x001E),
+
+      /* Finite Field Groups (DHE) */
+      ffdhe2048(0x0100), ffdhe3072(0x0101), ffdhe4096(0x0102),
+      ffdhe6144(0x0103), ffdhe8192(0x0104),
+
+      /* Hybrid Key Exchange Methods */
+      TBD(0xTBD), ...,
+
+      /* Reserved Code Points */
+      ffdhe_private_use(0x01FC..0x01FF),
+      hybrid_private_use(0x2F00..0x2FFF),
+      ecdhe_private_use(0xFE00..0xFEFF),
+      (0xFFFF)
+} NamedGroup;
+</pre>
 <h1 id="rfc.section.3.2">
-<a href="#rfc.section.3.2">3.2.</a> <a href="#num" id="num">(Num) How many component algorithms to combine?</a>
+<a href="#rfc.section.3.2">3.2.</a> <a href="#construction-transmitting" id="construction-transmitting">Transmitting public keys and ciphertexts</a>
 </h1>
-<h1 id="rfc.section.3.2.1">
-<a href="#rfc.section.3.2.1">3.2.1.</a> <a href="#num-2" id="num-2">(Num-2) Two</a>
-</h1>
-<p id="rfc.section.3.2.1.p.1">Exactly two algorithms can be combined together in hybrid key exchange.  This is the approach taken in <a href="#KIEFER" class="xref">[KIEFER]</a> and <a href="#SCHANCK" class="xref">[SCHANCK]</a>.</p>
-<h1 id="rfc.section.3.2.2">
-<a href="#rfc.section.3.2.2">3.2.2.</a> <a href="#num-2-plus" id="num-2-plus">(Num-2+) Two or more</a>
-</h1>
-<p id="rfc.section.3.2.2.p.1">Two or more algorithms can be combined together in hybrid key exchange.  This is the approach taken in <a href="#WHYTE13" class="xref">[WHYTE13]</a>.</p>
-<h1 id="rfc.section.3.2.3">
-<a href="#rfc.section.3.2.3">3.2.3.</a> <a href="#benefits-and-drawbacks-1" id="benefits-and-drawbacks-1">Benefits and Drawbacks</a>
-</h1>
-<p id="rfc.section.3.2.3.p.1">Restricting the number of component algorithms that can be hybridized to two substantially reduces the generality required.  On the other hand, some adopters may want to further reduce risk by employing multiple next-gen algorithms built on different cryptographic assumptions.</p>
+<p id="rfc.section.3.2.p.1">We take the relatively simple &#8220;concatenation approach&#8221;: the messages from the two algorithms being hybridized will be concatenated together and transmitted as a single value, to avoid having to change existing data structures.  However we do use some structure in the concenation procedure, specifically including length fields, so that the concatenation operation is unambiguous.  Note that among the Round 2 candidates in the NIST Post-Quantum Cryptography Standardization Project, not all algorithms have fixed public key sizes; for example, the SIKE key encapsulation mechanism permits compressed or uncompressed public keys at each security level, and the compressed and uncompressed formats are interoperable.</p>
+<p id="rfc.section.3.2.p.2">Recall that in TLS 1.3 a KEM public key or KEM ciphertext is represented as a <samp>KeyShareEntry</samp>:</p>
+<pre>
+struct {
+    NamedGroup group;
+    opaque key_exchange&lt;1..2^16-1&gt;;
+} KeyShareEntry;
+</pre>
+<p id="rfc.section.3.2.p.3">These are transmitted in the <samp>extension_data</samp> fields of <samp>KeyShareClientHello</samp> and <samp>KeyShareServerHello</samp> extensions:</p>
+<pre>
+struct {
+    KeyShareEntry client_shares&lt;0..2^16-1&gt;;
+} KeyShareClientHello;
+
+struct {
+    KeyShareEntry server_share;
+} KeyShareServerHello;
+</pre>
+<p id="rfc.section.3.2.p.4">The client&#8217;s shares are listed in descending order of client preference; the server selects one algorithm and sends its corresponding share.</p>
+<p id="rfc.section.3.2.p.5">For a hybrid key exchange, the <samp>key_exchange</samp> field of a <samp>KeyShareEntry</samp> is the following data structure:</p>
+<pre>
+struct {
+    opaque key_exchange_1&lt;1..2^16-1&gt;;
+    opaque key_exchange_2&lt;1..2^16-1&gt;;
+} HybridKeyExchange
+</pre>
+<p id="rfc.section.3.2.p.6">The order of shares in the <samp>HybridKeyExchange</samp> struct is the same as the order of algorithms indicated in the definition of the <samp>NamedGroup</samp>.</p>
+<p id="rfc.section.3.2.p.7">For the client&#8217;s share, the <samp>key_exchange_1</samp> and <samp>key_exchange_2</samp> values are the <samp>pk</samp> outputs of the corresponding KEMs&#8217; <samp>KeyGen</samp> algorithms.  For the server&#8217;s share, the <samp>key_exchange_1</samp> and <samp>key_exchange_2</samp> values are the <samp>ct</samp> outputs of the corresponding KEMs&#8217; <samp>Encaps</samp> algorithms.</p>
 <h1 id="rfc.section.3.3">
-<a href="#rfc.section.3.3">3.3.</a> <a href="#shares" id="shares">(Shares) How to convey key shares?</a>
+<a href="#rfc.section.3.3">3.3.</a> <a href="#construction-shared-secret" id="construction-shared-secret">Shared secret calculation</a>
 </h1>
-<p id="rfc.section.3.3.p.1">In ECDH ephmeral key exchange, the client sends its ephmeral public key in the <samp>key_share</samp> extension of the <samp>ClientHello</samp> message, and the server sends its ephmeral public key in the <samp>key_share</samp> extension of the <samp>ServerHello</samp> message.</p>
-<p id="rfc.section.3.3.p.2">For a general key encapsulation mechanism used for ephemeral key exchange, we imagine that that client generates a fresh KEM public key / secret pair for each connection, sends it to the client, and the server responds with a KEM ciphertext.  For simplicity and consistency with TLS 1.3 terminology, we will refer to both of these types of objects as &#8220;key shares&#8221;.</p>
-<p id="rfc.section.3.3.p.3">In hybrid key exchange, we have to decide how to convey the client&#8217;s two (or more) key shares, and the server&#8217;s two (or more) key shares.</p>
-<h1 id="rfc.section.3.3.1">
-<a href="#rfc.section.3.3.1">3.3.1.</a> <a href="#shares-concat" id="shares-concat">(Shares-Concat) Concatenate key shares</a>
-</h1>
-<p id="rfc.section.3.3.1.p.1">The client concatenates the bytes representing its two key shares and uses this directly as the <samp>key_exchange</samp> value in a <samp>KeyShareEntry</samp> in its <samp>key_share</samp> extension.  The server does the same thing.  Note that the <samp>key_exchange</samp> value can be an octet string of length at most 2^16-1.  This is the approach taken in <a href="#KIEFER" class="xref">[KIEFER]</a>, <a href="#OQS-111" class="xref">[OQS-111]</a>, and <a href="#WHYTE13" class="xref">[WHYTE13]</a>.</p>
-<h1 id="rfc.section.3.3.2">
-<a href="#rfc.section.3.3.2">3.3.2.</a> <a href="#shares-multiple" id="shares-multiple">(Shares-Multiple) Send multiple key shares</a>
-</h1>
-<p id="rfc.section.3.3.2.p.1">The client sends multiple key shares directly in the <samp>client_shares</samp> vectors of the <samp>ClientHello</samp> <samp>key_share</samp> extension.  The server does the same.  (Note that while the existing <samp>KeyShareClientHello</samp> struct allows for multiple key share entries, the existing <samp>KeyShareServerHello</samp> only permits a single key share entry, so some modification would be required to use this approach for the server to send multiple key shares.)</p>
-<h1 id="rfc.section.3.3.3">
-<a href="#rfc.section.3.3.3">3.3.3.</a> <a href="#shares-ext-additional" id="shares-ext-additional">(Shares-Ext-Additional) Extension carrying additional key shares</a>
-</h1>
-<p id="rfc.section.3.3.3.p.1">The client sends the key share for its traditional algorithm in the original <samp>key_share</samp> extension of the <samp>ClientHello</samp> message, and the key share for its next-gen algorithm in some additional extension in the <samp>ClientHello</samp> message.  The server does the same thing.  This is the approach taken in <a href="#SCHANCK" class="xref">[SCHANCK]</a>.</p>
-<h1 id="rfc.section.3.3.4">
-<a href="#rfc.section.3.3.4">3.3.4.</a> <a href="#benefits-and-drawbacks-2" id="benefits-and-drawbacks-2">Benefits and Drawbacks</a>
-</h1>
-<p><strong>Backwards compatibility.</strong> <a href="#shares-multiple" class="xref">(Shares-Multiple)</a> is fully backwards compatible with non-hybrid-aware servers.  <a href="#shares-ext-additional" class="xref">(Shares-Ext-Additional)</a> is backwards compatible with non-hybrid-aware servers provided they ignore unrecognized extensions.  <a href="#shares-concat" class="xref">(Shares-Concat)</a> is backwards-compatible with non-hybrid aware servers, but may result in duplication / additional round trips (see below).</p>
-<p><strong>Duplication versus additional round trips.</strong> If a client wants to offer multiple key shares for multiple combinations in order to avoid retry requests, then the client may ended up sending a key share for one algorithm multiple times when using <a href="#shares-ext-additional" class="xref">(Shares-Ext-Additional)</a> and <a href="#shares-concat" class="xref">(Shares-Concat)</a>.  (For example, if the client wants to send an ECDH-secp256r1 + McEliece123 key share, and an ECDH-secp256r1 + NewHope1024 key share, then the same ECDH public key may be sent twice.  If the client also wants to offer a traditional ECDH-only key share for non-hybrid-aware implementations and avoid retry requests, then that same ECDH public key may be sent another time.)  <a href="#shares-multiple" class="xref">(Shares-Multiple)</a> does not result in duplicate key shares.</p>
-<h1 id="rfc.section.3.4">
-<a href="#rfc.section.3.4">3.4.</a> <a href="#comb" id="comb">(Comb) How to use keys?</a>
-</h1>
-<p id="rfc.section.3.4.p.1">Each component key exchange algorithm establishes a shared secret.  These shared secrets must be combined in some way that achieves the &#8220;hybrid&#8221; property: the resulting secret is secure as long as at least one of the component key exchange algorithms is unbroken.</p>
-<h1 id="rfc.section.3.4.1">
-<a href="#rfc.section.3.4.1">3.4.1.</a> <a href="#comb-concat" id="comb-concat">(Comb-Concat) Concatenate keys</a>
-</h1>
-<p id="rfc.section.3.4.1.p.1">Each party concatenates the shared secrets established by each component algorithm in an agreed-upon order, then feeds that through the TLS key schedule.  In the context of TLS 1.3, this would mean using the concatenated shared secret in place of the (EC)DHE input to the second call to <samp>HKDF-Extract</samp> in the TLS 1.3 key schedule:</p>
+<p id="rfc.section.3.3.p.1">Here we also take the simple &#8220;concatenation approach&#8221;: the two shared secrets are concatenated together and used as the shared secret in the existing TLS 1.3 key schedule.  In this case, we do not add any additional structure (length fields) in the concatenation procedure: among all Round 2 candidates, once the algorithm and variant are specified, the shared secret output length is fixed.</p>
+<p id="rfc.section.3.3.p.2">In other words, the shared secret is calculated as</p>
+<pre>
+concatenated_shared_secret = shared_secret_1 || shared_secret_2
+</pre>
+<p id="rfc.section.3.3.p.3">and inserted into the TLS 1.3 key schedule in place of the (EC)DHE shared secret:</p>
 <pre>
                                     0
                                     |
@@ -829,380 +713,31 @@ concatenated_shared_secret -&gt; HKDF-Extract = Handshake Secret
                                     +-----&gt; Derive-Secret(...)
                                     +-----&gt; Derive-Secret(...)
 </pre>
-<p id="rfc.section.3.4.1.p.2">This is the approach used in <a href="#KIEFER" class="xref">[KIEFER]</a>, <a href="#OQS-111" class="xref">[OQS-111]</a>, and <a href="#WHYTE13" class="xref">[WHYTE13]</a>.</p>
-<p><a href="#GIACON" class="xref">[GIACON]</a> analyzes the security of applying a KDF to concatenated KEM shared secrets, but their analysis does not exactly apply here since the transcript of ciphertexts is included in the KDF application (though it should follow relatively straightforwardly).</p>
-<p><a href="#BINDEL" class="xref">[BINDEL]</a> analyzes the security of the (Comb-Concat) approach as abstracted in their <samp>dualPRF</samp> combiner.  They show that, if the component KEMs are IND-CPA-secure (or IND-CCA-secure), then the values output by <samp>Derive-Secret</samp> are IND-CPA-secure (respectively, IND-CCA-secure).  An important aspect of their analysis is that each ciphertext is input to the final PRF calls; this holds for TLS 1.3 since the <samp>Derive-Secret</samp> calls that derive output keys (application traffic secrets, and exporter and resumption master secrets) include the transcript hash as input.</p>
-<h1 id="rfc.section.3.4.2">
-<a href="#rfc.section.3.4.2">3.4.2.</a> <a href="#comb-kdf-1" id="comb-kdf-1">(Comb-KDF-1) KDF keys</a>
-</h1>
-<p id="rfc.section.3.4.2.p.1">Each party feeds the shared secrets established by each component algorithm in an agreed-upon order into a KDF, then feeds that through the TLS key schedule.  In the context of TLS 1.3, this would mean first applying <samp>HKDF-Extract</samp> to the shared secrets, then using the output in place of the (EC)DHE input to the second call to <samp>HKDF-Extract</samp> in the TLS 1.3 key schedule:</p>
-<pre>
-                                    0
-                                    |
-                                    v
-                      PSK -&gt;  HKDF-Extract = Early Secret
-                                    |
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-               Next-Gen             |
-                   |                v
-  (EC)DHE -&gt; HKDF-Extract     Derive-Secret(., "derived", "")
-                   |                |
-                   v                v
-                output -----&gt; HKDF-Extract = Handshake Secret
-                ^^^^^^              |
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    |
-                                    v
-                              Derive-Secret(., "derived", "")
-                                    |
-                                    v
-                         0 -&gt; HKDF-Extract = Master Secret
-                                    |
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-</pre>
-<h1 id="rfc.section.3.4.3">
-<a href="#rfc.section.3.4.3">3.4.3.</a> <a href="#comb-kdf-2" id="comb-kdf-2">(Comb-KDF-2) KDF keys</a>
-</h1>
-<p id="rfc.section.3.4.3.p.1">Each party concatenates the shared secrets established by each component algorithm in an agreed-upon order then feeds that into a KDF, then feeds the result through the TLS key schedule.</p>
-<p id="rfc.section.3.4.3.p.2">Compared with <a href="#comb-kdf-1" class="xref">(Comb-KDF-1)</a>, this method concatenates the (2 or more) shared secrets prior to input to the KDF, whereas (Comb-KDF-1) puts the (exactly 2) shared secrets in the two different input slots to the KDF.</p>
-<p id="rfc.section.3.4.3.p.3">Compared with <a href="#comb-concat" class="xref">(Comb-Concat)</a>, this method has an extract KDF application.  While this adds computational overhead, this may provide a cleaner abstraction of the hybridization mechanism for the purposes of formal security analysis.</p>
-<pre>
-                                    0
-                                    |
-                                    v
-                      PSK -&gt;  HKDF-Extract = Early Secret
-                                    |
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    |
-                                   v
-  concatenated     0
-  shared           |
-  secret  -&gt; HKDF-Extract     Derive-Secret(., "derived", "")
-  ^^^^^^           |                |
-                   v                v
-                output -----&gt; HKDF-Extract = Handshake Secret
-                ^^^^^^              |
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    |
-                                    v
-                              Derive-Secret(., "derived", "")
-                                    |
-                                    v
-                         0 -&gt; HKDF-Extract = Master Secret
-                                    |
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-</pre>
-<h1 id="rfc.section.3.4.4">
-<a href="#rfc.section.3.4.4">3.4.4.</a> <a href="#comb-xor" id="comb-xor">(Comb-XOR) XOR keys</a>
-</h1>
-<p id="rfc.section.3.4.4.p.1">Each party XORs the shared secrets established by each component algorithm (possibly after padding secrets of different lengths), then feeds that through the TLS key schedule.  In the context of TLS 1.3, this would mean using the XORed shared secret in place of the (EC)DHE input to the second call to <samp>HKDF-Extract</samp> in the TLS 1.3 key schedule.</p>
-<p><a href="#GIACON" class="xref">[GIACON]</a> analyzes the security of applying a KDF to the XORed KEM shared secrets, but their analysis does not quite apply here since the transcript of ciphertexts is included in the KDF application (though it should follow relatively straightforwardly).</p>
-<h1 id="rfc.section.3.4.5">
-<a href="#rfc.section.3.4.5">3.4.5.</a> <a href="#comb-chain" id="comb-chain">(Comb-Chain) Chain of KDF applications for each key</a>
-</h1>
-<p id="rfc.section.3.4.5.p.1">Each party applies a chain of key derivation functions to the shared secrets established by each component algorithm in an agreed-upon order; roughly speaking: <samp>F(k1 || F(k2))</samp>.  In the context of TLS 1.3, this would mean extending the key schedule to have one round of the key schedule applied for each component algorithm&#8217;s shared secret:</p>
-<pre>
-                                    0
-                                    |
-                                    v
-                      PSK -&gt;  HKDF-Extract = Early Secret
-                                    |
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    |
-                                    v
-                              Derive-Secret(., "derived", "")
-                                    |
-                                    v
- traditional_shared_secret -&gt; HKDF-Extract
- ^^^^^^^^^^^^^^^^^^^^^^^^^          |
-                              Derive-Secret(., "derived", "")
-                                    |
-                                    v
-    next_gen_shared_secret -&gt; HKDF-Extract = Handshake Secret
-    ^^^^^^^^^^^^^^^^^^^^^^          |                             
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    |
-                                    v
-                              Derive-Secret(., "derived", "")
-                                    |
-                                    v
-                         0 -&gt; HKDF-Extract = Master Secret
-                                    |
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-</pre>
-<p id="rfc.section.3.4.5.p.2">This is the approach used in <a href="#SCHANCK" class="xref">[SCHANCK]</a>.</p>
-<p><a href="#BINDEL" class="xref">[BINDEL]</a> analyzes the security of this approach as abstracted in their nested dual-PRF <samp>N</samp> combiner, showing a similar result as for the dualPRF combiner that it preserves IND-CPA (or IND-CCA) security. Again their analysis depends on each ciphertext being input to the final PRF (<samp>Derive-Secret</samp>) calls, which holds for TLS 1.3.</p>
-<h1 id="rfc.section.3.4.6">
-<a href="#rfc.section.3.4.6">3.4.6.</a> <a href="#comb-altinput" id="comb-altinput">(Comb-AltInput) Second shared secret in an alternate KDF input</a>
-</h1>
-<p id="rfc.section.3.4.6.p.1">In the context of TLS 1.3, the next-generation shared secret is used in place of a currently unused input in the TLS 1.3 key schedule, namely replacing the <samp>0</samp> &#8220;IKM&#8221; input to the final <samp>HKDF-Extract</samp>:</p>
-<pre>
-                                    0
-                                    |
-                                    v
-                      PSK -&gt;  HKDF-Extract = Early Secret
-                                    |
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    |
-                                    v
-                              Derive-Secret(., "derived", "")
-                                    |
-                                    v
- traditional_shared_secret -&gt; HKDF-Extract = Handshake Secret
- ^^^^^^^^^^^^^^^^^^^^^^^^^          |
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    |
-                                    v
-                              Derive-Secret(., "derived", "")
-                                    |
-                                    v
-    next_gen_shared_secret -&gt; HKDF-Extract = Master Secret
-    ^^^^^^^^^^^^^^^^^^^^^^          |
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-</pre>
-<p id="rfc.section.3.4.6.p.2">This approach is not taken in any of the known post-quantum/hybrid TLS drafts.  However, it bears some similarities to the approach for using external PSKs in <a href="#EXTERN-PSK" class="xref">[EXTERN-PSK]</a>.</p>
-<h1 id="rfc.section.3.4.7">
-<a href="#rfc.section.3.4.7">3.4.7.</a> <a href="#benefits-and-drawbacks-3" id="benefits-and-drawbacks-3">Benefits and Drawbacks</a>
-</h1>
-<p><strong>New logic.</strong>  While <a href="#comb-concat" class="xref">(Comb-Concat)</a>, <a href="#comb-kdf-1" class="xref">(Comb-KDF-1)</a>, and <a href="#comb-kdf-2" class="xref">(Comb-KDF-2)</a> require new logic to compute the concatenated shared secret, this value can then be used by the TLS 1.3 key schedule without changes to the key schedule logic.  In contrast, <a href="#comb-chain" class="xref">(Comb-Chain)</a> requires the TLS 1.3 key schedule to be extended for each extra component algorithm.</p>
-<p><strong>Philosophical.</strong>  The TLS 1.3 key schedule already applies a new stage for different types of keying material (PSK versus (EC)DHE), so <a href="#comb-chain" class="xref">(Comb-Chain)</a> continues that approach.</p>
-<p><strong>Efficiency.</strong> <a href="#comb-kdf-1" class="xref">(Comb-KDF-1)</a>, <a href="#comb-kdf-2" class="xref">(Comb-KDF-2)</a>, and <a href="#comb-chain" class="xref">(Comb-Chain)</a> increase the number of KDF applications for each component algorithm, whereas <a href="#comb-concat" class="xref">(Comb-Concat)</a> and <a href="#comb-altinput" class="xref">(Comb-AltInput)</a> keep the number of KDF applications the same (though with potentially longer inputs).</p>
-<p><strong>Extensibility.</strong>  <a href="#comb-altinput" class="xref">(Comb-AltInput)</a> changes the use of an existing input, which might conflict with other future changes to the use of the input.</p>
-<p><strong>More than 2 component algorithms.</strong>  The techniques in <a href="#comb-concat" class="xref">(Comb-Concat)</a> and <a href="#comb-chain" class="xref">(Comb-Chain)</a> can naturally accommodate more than 2 component shared secrets since there is no distinction to how each shared secret is treated.  <a href="#comb-altinput" class="xref">(Comb-AltInput)</a> would have to make some distinct, since the 2 component shared secrets are used in different ways; for example, the first shared secret is used as the &#8220;IKM&#8221; input in the 2nd <samp>HKDF-Extract</samp> call, and all subsequent shared secrets are concatenated to be used as the &#8220;IKM&#8221; input in the 3rd <samp>HKDF-Extract</samp> call.</p>
-<h1 id="rfc.section.3.4.8">
-<a href="#rfc.section.3.4.8">3.4.8.</a> <a href="#comb-open-questions" id="comb-open-questions">Open questions</a>
-</h1>
-<p id="rfc.section.3.4.8.p.1">At this point, it is unclear which, if any, of the above methods preserve FIPS compliance: i.e., if one shared secret is from a FIPS-compliant method (e.g., ECDH), and another shared secret is from a non-approved method (e.g., post-quantum), is the result still considered FIPS compliant?  Guidance from NIST on this question would be helpful.  Specifically, are any of these approaches acceptable under either <a href="#NIST-SP-800-56C" class="xref">[NIST-SP-800-56C]</a> or <a href="#NIST-SP-800-135" class="xref">[NIST-SP-800-135]</a>?</p>
 <h1 id="rfc.section.4">
-<a href="#rfc.section.4">4.</a> <a href="#candidate" id="candidate">Candidate instantiations</a>
+<a href="#rfc.section.4">4.</a> <a href="#comb-open-questions" id="comb-open-questions">Open questions</a>
 </h1>
-<p id="rfc.section.4.p.1">In this section, we describe two candidate instantiations of hybrid key exchange in TLS 1.3, based on the design considerations framework above.  It is not our intention that both of these instantations be standardized; we are providing two for discussion and for comparing and contrasting the two approaches.</p>
-<h1 id="rfc.section.4.1">
-<a href="#rfc.section.4.1">4.1.</a> <a href="#candidate-1" id="candidate-1">Candidate Instantiation 1</a>
-</h1>
-<p id="rfc.section.4.1.p.1">Candidate Instantiation 1 allows for two or more component algorithms to be combined <a href="#num-2-plus" class="xref">(Num-2+)</a>, and negotiates the combination using markers in the <samp>NamedGroup</samp> list as pointers to an extension listing the algorithms comprising each possible combination <a href="#neg-comb-2" class="xref">(Neg-Comb-2)</a> following the approach of <a href="#WHYTE13" class="xref">[WHYTE13]</a>.  The client conveys its multiple key shares individually in the <samp>client_shares</samp> vector of the <samp>ClientHello</samp> <samp>key_share</samp> extension <a href="#shares-multiple" class="xref">(Shares-Multiple)</a>.  The server conveys its multiple key shares concatenated together in its <samp>KeyShareServerHello</samp> struct <a href="#shares-concat" class="xref">(Shares-Concat)</a>.  The shared secrets are combined by concatenating them then feeding them through a KDF, then feeding the result into the TLS 1.3 key schedule <a href="#comb-kdf-2" class="xref">(Comb-KDF-2)</a>.</p>
-<h1 id="rfc.section.4.1.1">
-<a href="#rfc.section.4.1.1">4.1.1.</a> <a href="#clienthello-extension-supportedgroups" id="clienthello-extension-supportedgroups">ClientHello extension supported_groups</a>
-</h1>
-<p id="rfc.section.4.1.1.p.1">Following <a href="#WHYTE13" class="xref">[WHYTE13]</a> section 3.1, the <samp>NamedGroup</samp> enum used by the client to populate the <samp>supported_groups</samp> extension is extended to include new code points representing markers for hybrid combinations:</p>
-<pre>
- enum {
-     /* existing named groups */
-     secp256r1 (23), 
-     ...,
-     
-     /* new code points eventually defined for post-quantum algorithms */
-     ...,
-
-     /* new code points reserved for hybrid markers */
-     hybrid_marker00 (0xFD00),
-     hybrid_marker01 (0xFD01),
-     ...
-     hybrid_markerFF (0xFDFF),
-
-     /* existing reserved code points */
-     ffdhe_private_use (0x01FC..0x01FF),
-     ecdhe_private_use (0xFE00..0xFEFF),
-     (0xFFFF)
-  } NamedGroup;
-</pre>
-<p><samp>hybrid_marker</samp> code points do not a priori represent any fixed combination.  Instead, during each session establishment, the client defines what it wants each <samp>hybrid_marker</samp> code point to represent using the following extension.</p>
-<h1 id="rfc.section.4.1.2">
-<a href="#rfc.section.4.1.2">4.1.2.</a> <a href="#clienthello-extension-hybridextension" id="clienthello-extension-hybridextension">ClientHello extension hybrid_extension</a>
-</h1>
-<p id="rfc.section.4.1.2.p.1">Following <a href="#WHYTE13" class="xref">[WHYTE13]</a> section 3.2.4, a new <samp>ClientHello</samp> <samp>hybrid_extension</samp> extension is defined.  It is defined as follows:</p>
-<pre>
-struct {
-    NamedGroup hybrid_marker;
-    NamedGroup components&lt;2..10&gt;;
-} HybridMapping;
-
-struct {
-    HybridMapping map&lt;0..255&gt;;
-} HybridExtension;
-</pre>
-<p id="rfc.section.4.1.2.p.2">The <samp>HybridExtension</samp> contains 0 or more <samp>HybridMapping</samp>s.  Each <samp>HybridMapping</samp> corresponds to one of the <samp>hybrid_marker</samp> included in the <samp>supported_groups</samp> extension, and lists the component algorithms that are meant to comprise the this hybrid combination, which can be any of the existing named groups (elliptic curve or finite field), new code points eventually defined for post-quantum algorithms, or reserved code points for private use.</p>
-<h1 id="rfc.section.4.1.3">
-<a href="#rfc.section.4.1.3">4.1.3.</a> <a href="#clienthello-extension-keyshare" id="clienthello-extension-keyshare">ClientHello extension key_share</a>
-</h1>
-<p id="rfc.section.4.1.3.p.1">No syntactical modifications are made to the <samp>KeyShareEntry</samp> or <samp>KeyShareClientHello</samp> data structures.</p>
-<p id="rfc.section.4.1.3.p.2">Semantically, the client does not send a <samp>KeyShareEntry</samp> corresponding to any of the <samp>hybrid_marker</samp> code points.  Instead, the client sends <samp>KeyShareEntry</samp> for each of the component algorithms listed in the <samp>HybridMapping</samp>s.</p>
-<p id="rfc.section.4.1.3.p.3">For example, if the list of <samp>supported_groups</samp> is <samp>secp256r1</samp>, <samp>x25519</samp>, <samp>hybrid_marker00</samp>, and <samp>hybrid_marker01</samp>, where <samp>hybrid_marker00</samp> comprises <samp>secp256r1</samp> with a fictional post-quantum algorithm <samp>PQ1</samp>, and <samp>hybrid_marker01</samp> comprises <samp>x25519</samp> with <samp>PQ1</samp>, then the client could send three <samp>KeyShareEntry</samp> components: one for <samp>secp256r1</samp>, one for <samp>x25519</samp>, and one for <samp>PQ1</samp>.</p>
-<h1 id="rfc.section.4.1.4">
-<a href="#rfc.section.4.1.4">4.1.4.</a> <a href="#serverhello-extension-keyshareserverhello" id="serverhello-extension-keyshareserverhello">ServerHello extension KeyShareServerHello</a>
-</h1>
-<p id="rfc.section.4.1.4.p.1">The server responds with a <samp>KeyShareServerHello</samp> struct containing a single <samp>KeyShareEntry</samp>, which contains a single <samp>NamedGroup</samp> value and an opaque <samp>key_exchange</samp> string.</p>
-<p id="rfc.section.4.1.4.p.2">To complete the negotiation of a hybrid algorithm, the server responds with the <samp>NamedGroup</samp> value being the <samp>hybrid_marker</samp> code point correspond to the combination that the server was willing to agree to.</p>
-<p id="rfc.section.4.1.4.p.3">The <samp>key_exchange</samp> string is the octet representation of the following struct:</p>
-<pre>
-struct {
-    KeyShareEntry key_share&lt;2..10&gt;;
-} HybridKeyShare;
-</pre>
-<p id="rfc.section.4.1.4.p.4">where there is one <samp>key_share</samp> entry for each of the components of this hybrid combination.</p>
-<p id="rfc.section.4.1.4.p.5">Note that the <samp>key_exchange</samp> string has a maximum length of 2^16-1 octets, which may be insufficient for some post-quantum algorithms or for some hybridizations of multiple post-quantum algorithms.  It remains an open question as to whether this length can be increased without breaking existing TLS 1.3 implementations.</p>
-<h1 id="rfc.section.4.1.5">
-<a href="#rfc.section.4.1.5">4.1.5.</a> <a href="#key-schedule" id="key-schedule">Key schedule</a>
-</h1>
-<p id="rfc.section.4.1.5.p.1">The component algorithm shared secrets are combined by concatenating them, then applying a key derivation function, the output of which is then used in the TLS 1.3 key schedule in place of the (EC)DHE shared secret.  The component shared secrets are concatenated in the order that they appear in the <samp>components</samp> vector of the <samp>HybridMapping</samp> extension above.</p>
-<p id="rfc.section.4.1.5.p.2">We provide two options for concatenating the shared secrets, and would like feedback from the working group in which to proceed with.</p>
-<p id="rfc.section.4.1.5.p.3">Each component algorithm&#8217;s <samp>shared_secret</samp> is defined by the algorithm itself, for example the DHE or ECDHE shared secrets as defined in Section 7.4 of <a href="#TLS13" class="xref">[TLS13]</a>, or as defined by post-quantum methods once standardized in their own documents.</p>
-<p><strong>Option 1: Using data structures.</strong>  Option 1 uses a full-fledged TLS 1.3 data structure to represent the list of component shared secrets.  As a result, lengths of each shared secret are unambiguously encoded.</p>
-<pre>
-struct SharedSecret {
-    opaque shared_secret&lt;0..2^16-1&gt;;
-}
-
-struct {
-    SharedSecret component&lt;2..10&gt;;
-} HybridSharedSecret;
-</pre>
-<p id="rfc.section.4.1.5.p.5">The <samp>concatenated_shared_secret</samp> is then the octet representation of the <samp>HybridSharedSecret </samp> struct.</p>
-<p><strong>Option 2: Direct concatenation.</strong>  Option 2 directly concatenates the shared secrets.  Option 2 should only be considered if the shared secret for each algorithm is guarantees to be of a fixed length, which would imply that, once the component algorithms are fixed, concatenation is bijective.</p>
-<pre>
-concatenated_shared_secret = shared_secret0 | shared_secret1 | ...
-</pre>
-<p id="rfc.section.4.1.5.p.7">In either option, the <samp>concatenated_shared_secret</samp> octet string is used as the IKM argument of HKDF-Extract, with the zero-length string as the salt argument.  THe output of HKDF-Extract is used as the IKM argument for HKDF-Extract&#8217;s calculation of the handshake secret, as shown below.</p>
-<pre>
-                                    0
-                                    |
-                                    v
-                      PSK -&gt;  HKDF-Extract = Early Secret
-                                    |
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    |
-                                   v
-  concatenated     0
-  shared           |
-  secret  -&gt; HKDF-Extract     Derive-Secret(., "derived", "")
-  ^^^^^^           |                |
-                   v                v
-                output -----&gt; HKDF-Extract = Handshake Secret
-                ^^^^^^              |
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    |
-                                    v
-                              Derive-Secret(., "derived", "")
-                                    |
-                                    v
-                         0 -&gt; HKDF-Extract = Master Secret
-                                    |
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-                                    +-----&gt; Derive-Secret(...)
-</pre>
-<h1 id="rfc.section.4.2">
-<a href="#rfc.section.4.2">4.2.</a> <a href="#candidate-2" id="candidate-2">Candidate Instantiation 2</a>
-</h1>
-<p id="rfc.section.4.2.p.1">Candidate Instantiation 2 allows for exactly two component algorithms to be combined <a href="#num-2" class="xref">(Num-2)</a>, and uses code points standardized for each permissible combination.  The client concatenates its multiple key shares together as a distinct entry in the <samp>client_shares</samp> vector of the <samp>ClientHello</samp> <samp>key_share</samp> extension <a href="#shares-concat" class="xref">(Shares-Concat)</a>.  The server does the same.  The shared secrets are combined by concatenating them then feeding them through a KDF, then feeding the result into the TLS 1.3 key schedule <a href="#comb-kdf-2" class="xref">(Comb-KDF-2)</a>.</p>
-<h1 id="rfc.section.4.2.1">
-<a href="#rfc.section.4.2.1">4.2.1.</a> <a href="#clienthello-extension-supportedgroups-1" id="clienthello-extension-supportedgroups-1">ClientHello extension supported_groups</a>
-</h1>
-<p id="rfc.section.4.2.1.p.1">The <samp>NamedGroup</samp> enum used by the client to populate the <samp>supported_groups</samp> extension is extended to include new code points representing each desired combination.</p>
-<p id="rfc.section.4.2.1.p.2">For example,</p>
-<pre>
- enum {
-     /* existing named groups */
-     secp256r1 (23), 
-     x25519 (0x001D),
-     ...,
-     
-     /* new code points eventually defined for post-quantum algorithms */
-     PQ1 (0x????),
-     PQ2 (0x????),
-     ...,
-
-     /* new code points defined for hybrid combinations */
-     secp256r1_PQ1 (0x????),
-     secp256r1_PQ2 (0x????),
-     x25519_PQ1 (0x????),
-     x25519_PQ2 (0x????),
-
-     /* existing reserved code points */
-     ffdhe_private_use (0x01FC..0x01FF),
-     ecdhe_private_use (0xFE00..0xFEFF),
-     (0xFFFF)
-  } NamedGroup;
-</pre>
-<h1 id="rfc.section.4.2.2">
-<a href="#rfc.section.4.2.2">4.2.2.</a> <a href="#clienthello-extension-keyshareclienthello" id="clienthello-extension-keyshareclienthello">ClientHello extension KeyShareClientHello</a>
-</h1>
-<p id="rfc.section.4.2.2.p.1">The client sends a <samp>KeyShareClientHello</samp> struct containing multiple <samp>KeyShareEntry</samp> values, some of which may correspond to some of the hybrid combination code points it listed in the <samp>supported_groups</samp> extension above.</p>
-<p id="rfc.section.4.2.2.p.2">The <samp>KeyShareEntry</samp> for a hybrid combination code point contains an opaque  <samp>key_exchange</samp> string which is the octet representation of the following struct:</p>
-<pre>
-struct {
-    KeyShareEntry key_share&lt;2..10&gt;;
-} HybridKeyShare;
-</pre>
-<p id="rfc.section.4.2.2.p.3">where there is one <samp>key_share</samp> entry for each of the components of this hybrid combination.</p>
-<p id="rfc.section.4.2.2.p.4">Note that this approach may result in duplication of key shares being sent; for example, a client wanting to support either the combination <samp>secp256r1_PQ1</samp> or <samp>x25519_PQ1</samp> would send two <samp>PQ1</samp> key shares.</p>
-<h1 id="rfc.section.4.2.3">
-<a href="#rfc.section.4.2.3">4.2.3.</a> <a href="#serverhello-extension-keyshareserverhello-1" id="serverhello-extension-keyshareserverhello-1">ServerHello extension KeyShareServerHello</a>
-</h1>
-<p id="rfc.section.4.2.3.p.1">The server responds with a <samp>KeyShareServerHello</samp> struct containing a single <samp>KeyShareEntry</samp>, which contains a single <samp>NamedGroup</samp> value and an opaque <samp>key_exchange</samp> string.  The <samp>key_exchange</samp> string is the octet representation of the <samp>HybridKeyShare</samp> struct defined above.</p>
-<h1 id="rfc.section.4.2.4">
-<a href="#rfc.section.4.2.4">4.2.4.</a> <a href="#key-schedule-1" id="key-schedule-1">Key schedule</a>
-</h1>
-<p id="rfc.section.4.2.4.p.1">The key schedule is computed as in Candidate Instantiation 1 above.</p>
-<h1 id="rfc.section.4.3">
-<a href="#rfc.section.4.3">4.3.</a> <a href="#comparing-candidate-instantiation-1-and-2" id="comparing-candidate-instantiation-1-and-2">Comparing Candidate Instantiation 1 and 2</a>
-</h1>
-<p id="rfc.section.4.3.p.1">CI2 requires much less change to negotiation routines &#8211; each hybrid combination is just a new key exchange method, and the concatenation of key shares and shared secrets can be handled internally to that method.  This comes at the cost, however, of combinatorial explosion of code points: one code point needs to be standardized for each desired combination.  We have also limited the number of hybrid algorithms to 2 in CI2 to somewhat limit the explosion of code points needing to be defined.  Concatenating client key shares also risks sending duplicate key shares, increasing communication sizes.</p>
-<p id="rfc.section.4.3.p.2">CI1 requires more change to negotiation routines, since it introduces new data structures and has an indirect mapping between hybrid combinations and key shares.  Benefits from this approach include avoiding sending duplicate key shares and not needing to standardize every possible supported combination.  Implementers, however, must do the work of deciding which combinations of algorithms are meaningful / tolerable / desirable from a security perspective, potentially complicating interoperability.</p>
+<p><strong>Larger public keys and/or ciphertexts.</strong> The <samp>HybridKeyExchange</samp> struct in <a href="#construction-transmitting" class="xref">Section 3.2</a> limits public keys and ciphertexts to 2^16-1 bytes; this is bounded by the same (2^16-1)-byte limit on the <samp>key_exchange</samp> field in the <samp>KeyShareEntry</samp> struct.  Some post-quantum KEMs have larger public keys and/or ciphertexts; for example, Classic McEliece&#8217;s smallest parameter set has public key size 261,120 bytes.  Hence this draft can not accommodate all current NIST Round 2 candidates.</p>
+<p id="rfc.section.4.p.2">If it is desired to accommodate algorithms with public keys or ciphertexts larger than 2^16-1 bytes, options include a) revising the TLS 1.3 standard to allow longer <samp>key_exchange</samp> fields; b) creating an alternative extension which is sufficiently large; or c) providing a reference to an external public key, e.g. a URL at which to look up the public key (along with a hash to verify).</p>
+<p><strong>Duplication of key shares.</strong> Concatenation of public keys in the <samp>HybridKeyExchange</samp> struct as described in <a href="#construction-transmitting" class="xref">Section 3.2</a> can result in sending duplicate key shares.  For example, if a client wanted to offer support for two combinations, say &#8220;secp256r1+sikep503&#8221; and &#8220;x25519+sikep503&#8221;, it would end up sending two sikep503 public keys, since the <samp>KeyShareEntry</samp> for each combination contains its own copy of a sikep503 key.  This duplication may be more problematic for post-quantum algorithms which have larger public keys.</p>
+<p id="rfc.section.4.p.4">If it is desired to avoid duplication of key shares, options include a) disconnect the use of a combination for the algorithm identifier from the use of concatenation of public keys by introducing new logic and/or data structures (see <a href="#shares-multiple" class="xref">Appendix A.3.2</a> or <a href="#shares-ext-additional" class="xref">Appendix A.3.3</a>); or b) provide some back reference from a later key share entry to an earlier one.</p>
+<p><strong>Variable-length shared secrets.</strong> The shared secret calculation in <a href="#construction-shared-secret" class="xref">Section 3.3</a> directly concatenates the shared secret values of each scheme, rather than encoding them with length fields.  This implicitly assumes that the length of each shared secret is fixed once the algorithm is fixed.  This is the case for all Round 2 candidates.</p>
+<p id="rfc.section.4.p.6">However, if it is envisioned that this specification be used with algorithms which do not have fixed-length shared secrets (after the variant has been fixed by the algorithm identifier in the <samp>NamedGroup</samp> negotiation in <a href="#construction-negotiation" class="xref">Section 3.1</a>), then <a href="#construction-shared-secret" class="xref">Section 3.3</a> should be revised to use an unambiguous concatenation method similar to the one used in <a href="#construction-transmitting" class="xref">Section 3.2</a>.</p>
+<p><strong>FIPS-compliance of shared secret concatenation.</strong> <a href="#NIST-SP-800-56C" class="xref">[NIST-SP-800-56C]</a> or <a href="#NIST-SP-800-135" class="xref">[NIST-SP-800-135]</a> give NIST recommendations for key derivation methods in key exchange protocols.  Some hybrid combinations in this document may combine the shared secret from a NIST-approved algorithm (e.g., ECDH using the nistp256/secp256r1 curve) with a shared secret from a non-approved algorithm (e.g., post-quantm).  Prior to advancement of this draft, guidance should be obtained from NIST on whether the combination method stated in <a href="#construction-shared-secret" class="xref">Section 3.3</a> results in a method that gives a final shared secret that is acceptable under either <a href="#NIST-SP-800-56C" class="xref">[NIST-SP-800-56C]</a> or <a href="#NIST-SP-800-135" class="xref">[NIST-SP-800-135]</a>.</p>
+<p><strong>IND-CPA versus IND-CCA security.</strong> One security consideration that is not yet resolved is whether key encapsulation mechanisms used in TLS 1.3 must be secure against active attacks (IND-CCA), or whether security against passive attacks (IND-CPA) suffices.  Existing security proofs of TLS 1.3 (such as <a href="#DFGS15" class="xref">[DFGS15]</a>, <a href="#DOWLING" class="xref">[DOWLING]</a>) are formulated specifically around Diffie&#8211;Hellman and use an &#8220;actively secure&#8221; Diffie&#8211;Hellman assumption (PRF Oracle Diffie&#8211;Hellman (PRF-ODH)) rather than a &#8220;passively secure&#8221; DH assumption (e.g. decisional Diffie&#8211;Hellman (DDH)), but do not claim that the actively secure notion is required.  In the context of TLS 1.2, <a href="#KPW13" class="xref">[KPW13]</a> show that, at least in one formalization, a passively secure assumption like DDH is insufficient (even when signatures are used for mutual authentication).  Resolving this issue for TLS 1.3 is an open question.</p>
+<p><strong>Resumption.</strong> TLS 1.3 allows for session resumption via a pre-shared key.  When a pre-shared key is used during session establishment, an ephemeral key exchange can also be used to enhance forward secrecy.  If the original key exchange was hybrid, should an ephemeral key exchange in a resumption of that original key exchange be required to use the same hybrid algorithms?</p>
+<p><strong>Failures.</strong> Some post-quantum key exchange algorithms have non-trivial failure rates: two honest parties may fail to agree on the same shared secret with non-negligible probability.  Does a non-negligible failure rate affect the security of TLS?  How should such a failure be treated operationally?  What is an acceptable failure rate?</p>
 <h1 id="rfc.section.5">
 <a href="#rfc.section.5">5.</a> <a href="#iana-considerations" id="iana-considerations">IANA Considerations</a>
 </h1>
-<p id="rfc.section.5.p.1">If Candidate Instantiation 1 is selected, the TLS Supported Groups registry will have to be updated to include code points for hybrid markers.</p>
+<p id="rfc.section.5.p.1">Identifiers for specific key exchange algorithm combinations will be defined in later documents.  This document requests IANA reserve values 0x2F00..0x2FFF in the TLS Supported Groups registry for private use for hybrid key exchange methods.</p>
 <h1 id="rfc.section.6">
 <a href="#rfc.section.6">6.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a>
 </h1>
-<p id="rfc.section.6.p.1">The majority of this document is about security considerations.  As noted especially in <a href="#comb" class="xref">Section 3.4</a>, the shared secrets computed in the hybrid key exchange should be computed in a way that achieves the &#8220;hybrid&#8221; property: the resulting secret is secure as long as at least one of the component key exchange algorithms is unbroken.  While many natural approaches seem to achieve this, there can be subtleties (see for example the introduction of <a href="#GIACON" class="xref">[GIACON]</a>).</p>
-<p id="rfc.section.6.p.2">The rest of this section highlights a few unresolved questions related to security.</p>
-<h1 id="rfc.section.6.1">
-<a href="#rfc.section.6.1">6.1.</a> <a href="#active-security" id="active-security">Active security</a>
-</h1>
-<p id="rfc.section.6.1.p.1">One security consideration that is not yet resolved is whether key encapsulation mechanisms used in TLS 1.3 must be secure against active attacks (IND-CCA), or whether security against passive attacks (IND-CPA) suffices.  Existing security proofs of TLS 1.3 (such as <a href="#DFGS15" class="xref">[DFGS15]</a>, <a href="#DOWLING" class="xref">[DOWLING]</a>) are formulated specifically around Diffie&#8211;Hellman and use an &#8220;actively secure&#8221; Diffie&#8211;Hellman assumption (PRF Oracle Diffie&#8211;Hellman (PRF-ODH)) rather than a &#8220;passively secure&#8221; DH assumption (e.g. decisional Diffie&#8211;Hellman (DDH)), but do not claim that the actively secure notion is required.  In the context of TLS 1.2, <a href="#KPW13" class="xref">[KPW13]</a> show that, at least in one formalization, a passively secure assumption like DDH is insufficient (even when signatures are used for mutual authentication).  Resolving this issue for TLS 1.3 is an open question.</p>
-<h1 id="rfc.section.6.2">
-<a href="#rfc.section.6.2">6.2.</a> <a href="#resumption" id="resumption">Resumption</a>
-</h1>
-<p id="rfc.section.6.2.p.1">TLS 1.3 allows for session resumption via a pre-shared key.  When a pre-shared key is used during session establishment, an ephemeral key exchange can also be used to enhance forward secrecy.  If the original key exchange was hybrid, should an ephemeral key exchange in a resumption of that original key exchange be required to use the same hybrid algorithms?</p>
-<h1 id="rfc.section.6.3">
-<a href="#rfc.section.6.3">6.3.</a> <a href="#failures" id="failures">Failures</a>
-</h1>
-<p id="rfc.section.6.3.p.1">Some post-quantum key exchange algorithms have non-trivial failure rates: two honest parties may fail to agree on the same shared secret with non-negligible probability.  Does a non-negligible failure rate affect the security of TLS?  How should such a failure be treated operationally?  What is an acceptable failure rate?</p>
+<p id="rfc.section.6.p.1">The shared secrets computed in the hybrid key exchange should be computed in a way that achieves the &#8220;hybrid&#8221; property: the resulting secret is secure as long as at least one of the component key exchange algorithms is unbroken.  See <a href="#GIACON" class="xref">[GIACON]</a> and <a href="#BINDEL" class="xref">[BINDEL]</a> for an investigation of these issues.  Under the assumption that shared secrets are fixed length once the combination is fixed, the contruction from <a href="#construction-shared-secret" class="xref">Section 3.3</a> corresponds to the dual-PRF combiner of <a href="#BINDEL" class="xref">[BINDEL]</a> which is shown to preserve security under the assumption that the hash function is a dual-PRF.</p>
 <h1 id="rfc.section.7">
 <a href="#rfc.section.7">7.</a> <a href="#acknowledgements" id="acknowledgements">Acknowledgements</a>
 </h1>
-<p id="rfc.section.7.p.1">These ideas have grown from discussions with many colleagues, including Christopher Wood, Matt Campagna, and authors of the various hybrid Internet-Drafts and implementations cited in this document.  The immediate impetus for this document came from discussions with attendees at the Workshop on Post-Quantum Software in Mountain View, California, in January 2019.</p>
-<p id="rfc.section.7.p.2">Martin Thomson suggested the <a href="#comb-kdf-1" class="xref">(Comb-KDF-1)</a> approach.</p>
+<p id="rfc.section.7.p.1">These ideas have grown from discussions with many colleagues, including Christopher Wood, Matt Campagna, authors of the various hybrid Internet-Drafts and implementations cited in this document, and members of the TLS working group.  The immediate impetus for this document came from discussions with attendees at the Workshop on Post-Quantum Software in Mountain View, California, in January 2019.  Martin Thomson suggested the <a href="#comb-kdf-1" class="xref">(Comb-KDF-1)</a> approach.</p>
 <h1 id="rfc.references">
 <a href="#rfc.references">8.</a> References</h1>
 <h1 id="rfc.references.1">
@@ -1227,7 +762,7 @@ struct {
 <tr>
 <td class="reference"><b id="BINDEL">[BINDEL]</b></td>
 <td class="top">
-<a>Bindel, N.</a>, <a>Brendel, J.</a>, <a>Fischlin, M.</a>, <a>Goncalves, B.</a> and <a>D. Stebila</a>, "<a href="https://eprint.iacr.org/2018/903">Hybrid Key Encapsulation Mechanisms and Authenticated Key Exchange</a>", Post-Quantum Cryptography (PQCrypto) , 2019.</td>
+<a>Bindel, N.</a>, <a>Brendel, J.</a>, <a>Fischlin, M.</a>, <a>Goncalves, B.</a> and <a>D. Stebila</a>, "<a>Hybrid Key Encapsulation Mechanisms and Authenticated Key Exchange</a>", Post-Quantum Cryptography pp. 206-226, DOI 10.1007/978-3-030-25510-7_12, 2019.</td>
 </tr>
 <tr>
 <td class="reference"><b id="CECPQ1">[CECPQ1]</b></td>
@@ -1267,7 +802,7 @@ struct {
 <tr>
 <td class="reference"><b id="EXTERN-PSK">[EXTERN-PSK]</b></td>
 <td class="top">
-<a>Housley, R.</a>, "<a href="https://tools.ietf.org/html/draft-ietf-tls-tls13-cert-with-extern-psk-02">TLS 1.3 Extension for Certificate-based Authentication with an External Pre-Shared Key</a>", Internet-Draft draft-ietf-tls-tls13-cert-with-extern-psk-02, May 2019.</td>
+<a>Housley, R.</a>, "<a href="https://tools.ietf.org/html/draft-ietf-tls-tls13-cert-with-extern-psk-07">TLS 1.3 Extension for Certificate-based Authentication with an External Pre-Shared Key</a>", Internet-Draft draft-ietf-tls-tls13-cert-with-extern-psk-07, December 2019.</td>
 </tr>
 <tr>
 <td class="reference"><b id="FRODO">[FRODO]</b></td>
@@ -1280,6 +815,11 @@ struct {
 <a>Giacon, F.</a>, <a>Heuer, F.</a> and <a>B. Poettering</a>, "<a>KEM Combiners</a>", Public-Key Cryptography &#8211; PKC 2018 pp. 190-218, DOI 10.1007/978-3-319-76578-5_7, 2018.</td>
 </tr>
 <tr>
+<td class="reference"><b id="GREASE">[GREASE]</b></td>
+<td class="top">
+<a>Benjamin, D.</a>, "<a href="https://tools.ietf.org/html/draft-ietf-tls-grease-04">Applying GREASE to TLS Extensibility</a>", Internet-Draft draft-ietf-tls-grease-04, August 2019.</td>
+</tr>
+<tr>
 <td class="reference"><b id="HARNIK">[HARNIK]</b></td>
 <td class="top">
 <a>Harnik, D.</a>, <a>Kilian, J.</a>, <a>Naor, M.</a>, <a>Reingold, O.</a> and <a>A. Rosen</a>, "<a>On Robust Combiners for Oblivious Transfer and Other Primitives</a>", Lecture Notes in Computer Science pp. 96-113, DOI 10.1007/11426639_6, 2005.</td>
@@ -1287,17 +827,17 @@ struct {
 <tr>
 <td class="reference"><b id="HOFFMAN">[HOFFMAN]</b></td>
 <td class="top">
-<a>Hoffman, P.</a>, "<a href="https://tools.ietf.org/html/draft-hoffman-c2pq-05">The Transition from Classical to Post-Quantum Cryptography</a>", Internet-Draft draft-hoffman-c2pq-05, May 2019.</td>
+<a>Hoffman, P.</a>, "<a href="https://tools.ietf.org/html/draft-hoffman-c2pq-06">The Transition from Classical to Post-Quantum Cryptography</a>", Internet-Draft draft-hoffman-c2pq-06, November 2019.</td>
 </tr>
 <tr>
 <td class="reference"><b id="IKE-HYBRID">[IKE-HYBRID]</b></td>
 <td class="top">
-<a>Tjhai, C.</a>, <a>Tomlinson, M.</a>, <a>grbartle@cisco.com, g.</a>, <a>Fluhrer, S.</a>, <a>Geest, D.</a>, <a>Garcia-Morchon, O.</a> and <a>V. Smyslov</a>, "<a href="https://tools.ietf.org/html/draft-tjhai-ipsecme-hybrid-qske-ikev2-03">Framework to Integrate Post-quantum Key Exchanges into Internet Key Exchange Protocol Version 2 (IKEv2)</a>", Internet-Draft draft-tjhai-ipsecme-hybrid-qske-ikev2-03, January 2019.</td>
+<a>Tjhai, C.</a>, <a>Tomlinson, M.</a>, <a>grbartle@cisco.com, g.</a>, <a>Fluhrer, S.</a>, <a>Geest, D.</a>, <a>Garcia-Morchon, O.</a> and <a>V. Smyslov</a>, "<a href="https://tools.ietf.org/html/draft-tjhai-ipsecme-hybrid-qske-ikev2-04">Framework to Integrate Post-quantum Key Exchanges into Internet Key Exchange Protocol Version 2 (IKEv2)</a>", Internet-Draft draft-tjhai-ipsecme-hybrid-qske-ikev2-04, July 2019.</td>
 </tr>
 <tr>
 <td class="reference"><b id="IKE-PSK">[IKE-PSK]</b></td>
 <td class="top">
-<a>Fluhrer, S.</a>, <a>McGrew, D.</a>, <a>Kampanakis, P.</a> and <a>V. Smyslov</a>, "<a href="https://tools.ietf.org/html/draft-ietf-ipsecme-qr-ikev2-08">Postquantum Preshared Keys for IKEv2</a>", Internet-Draft draft-ietf-ipsecme-qr-ikev2-08, March 2019.</td>
+<a>Fluhrer, S.</a>, <a>Kampanakis, P.</a>, <a>McGrew, D.</a> and <a>V. Smyslov</a>, "<a href="https://tools.ietf.org/html/draft-ietf-ipsecme-qr-ikev2-11">Mixing Preshared Keys in IKEv2 for Post-quantum Security</a>", Internet-Draft draft-ietf-ipsecme-qr-ikev2-11, January 2020.</td>
 </tr>
 <tr>
 <td class="reference"><b id="KIEFER">[KIEFER]</b></td>
@@ -1370,6 +910,369 @@ struct {
 <a>Zhang, R.</a>, <a>Hanaoka, G.</a>, <a>Shikata, J.</a> and <a>H. Imai</a>, "<a>On the Security of Multiple Encryption or CCA-security+CCA-security=CCA-security?</a>", Public Key Cryptography &#8211; PKC 2004 pp. 360-374, DOI 10.1007/978-3-540-24632-9_26, 2004.</td>
 </tr>
 </tbody></table>
+<h1 id="rfc.appendix.A">
+<a href="#rfc.appendix.A">Appendix A.</a> <a href="#design-considerations" id="design-considerations">Design Considerations</a>
+</h1>
+<p id="rfc.section.A.p.1">This appendix discusses choices one could make along four distinct axes when integrating hybrid key exchange into TLS 1.3:</p>
+<p></p>
+
+<ol>
+<li>How to negotiate the use of hybridization in general and component algorithms specifically?</li>
+<li>How many component algorithms can be combined?</li>
+<li>How should multiple key shares (public keys / ciphertexts) be conveyed?</li>
+<li>How should multiple shared secrets be combined?</li>
+</ol>
+<p id="rfc.section.A.p.3">The construction in the main body illustrates one selection along each of these axes.  The remainder of this appendix outlines various options we have identified for each of these choices.  Immediately below we provide a summary list.  Options are labelled with a short code in parentheses to provide easy cross-referencing.</p>
+<p></p>
+
+<ol>
+<li>
+<a href="#neg" class="xref">(Neg)</a> How to negotiate the use of hybridization in general and component algorithms specifically?  <ul>
+<li>
+<a href="#neg-ind" class="xref">(Neg-Ind)</a> Negotiating component algorithms individually      <ul>
+<li>
+<a href="#neg-ind-1" class="xref">(Neg-Ind-1)</a> Traditional algorithms in <samp>ClientHello</samp> <samp>supported_groups</samp> extension, next-gen algorithms in another extension</li>
+<li>
+<a href="#neg-ind-2" class="xref">(Neg-Ind-2)</a> Both types of algorithms in <samp>supported_groups</samp> with external mapping to tradition/next-gen.</li>
+<li>
+<a href="#neg-ind-3" class="xref">(Neg-Ind-3)</a> Both types of algorithms in <samp>supported_groups</samp> separated by a delimiter.</li>
+</ul>
+</li>
+<li>
+<a href="#neg-comb" class="xref">(Neg-Comb)</a> Negotiating component algorithms as a combination      <ul>
+<li>
+<a href="#neg-comb-1" class="xref">(Neg-Comb-1)</a> Standardize <samp>NamedGroup</samp> identifiers for each desired combination.</li>
+<li>
+<a href="#neg-comb-2" class="xref">(Neg-Comb-2)</a> Use placeholder identifiers in <samp>supported_groups</samp> with an extension defining the combination corresponding to each placeholder.</li>
+<li>
+<a href="#neg-comb-3" class="xref">(Neg-Comb-3)</a> List combinations by inserting grouping delimiters into <samp>supported_groups</samp> list.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<a href="#num" class="xref">(Num)</a> How many component algorithms can be combined?  <ul>
+<li>
+<a href="#num-2" class="xref">(Num-2)</a> Two.</li>
+<li>
+<a href="#num-2-plus" class="xref">(Num-2+)</a> Two or more.</li>
+</ul>
+</li>
+<li>
+<a href="#shares" class="xref">(Shares)</a> How should multiple key shares (public keys / ciphertexts) be conveyed?  <ul>
+<li>
+<a href="#shares-concat" class="xref">(Shares-Concat)</a> Concatenate each combination of key shares.</li>
+<li>
+<a href="#shares-multiple" class="xref">(Shares-Multiple)</a> Send individual key shares for each algorithm.</li>
+<li>
+<a href="#shares-ext-additional" class="xref">(Shares-Ext-Additional)</a> Use an extension to convey key shares for component algorithms.</li>
+</ul>
+</li>
+<li>
+<a href="#comb" class="xref">(Comb)</a> How should multiple shared secrets be combined?  <ul>
+<li>
+<a href="#comb-concat" class="xref">(Comb-Concat)</a> Concatenate the shared secrets then use directly in the TLS 1.3 key schedule.</li>
+<li>
+<a href="#comb-kdf-1" class="xref">(Comb-KDF-1)</a> and <a href="#comb-kdf-2" class="xref">(Comb-KDF-2)</a> KDF the shared secrets together, then use the output in the TLS 1.3 key schedule.</li>
+<li>
+<a href="#comb-xor" class="xref">(Comb-XOR)</a> XOR the shared secrets then use directly in the TLS 1.3 key schedule.</li>
+<li>
+<a href="#comb-chain" class="xref">(Comb-Chain)</a> Extend the TLS 1.3 key schedule so that there is a stage of the key schedule for each shared secret.</li>
+<li>
+<a href="#comb-altinput" class="xref">(Comb-AltInput)</a> Use the second shared secret in an alternate (otherwise unused) input in the TLS 1.3 key schedule.</li>
+</ul>
+</li>
+</ol>
+<h1 id="rfc.appendix.A.1">
+<a href="#rfc.appendix.A.1">A.1.</a> <a href="#neg" id="neg">(Neg) How to negotiate hybridization and component algorithms?</a>
+</h1>
+<h1 id="rfc.appendix.A.1.1">
+<a href="#rfc.appendix.A.1.1">A.1.1.</a> <a href="#key-exchange-negotiation-in-tls-13" id="key-exchange-negotiation-in-tls-13">Key exchange negotiation in TLS 1.3</a>
+</h1>
+<p id="rfc.section.A.1.1.p.1">Recall that in TLS 1.3, the key exchange mechanism is negotiated via the <samp>supported_groups</samp> extension.  The <samp>NamedGroup</samp> enum is a list of standardized groups for Diffie&#8211;Hellman key exchange, such as <samp>secp256r1</samp>, <samp>x25519</samp>, and <samp>ffdhe2048</samp>.</p>
+<p id="rfc.section.A.1.1.p.2">The client, in its <samp>ClientHello</samp> message, lists its supported mechanisms in the <samp>supported_groups</samp> extension.  The client also optionally includes the public key of one or more of these groups in the <samp>key_share</samp> extension as a guess of which mechanisms the server might accept in hopes of reducing the number of round trips.</p>
+<p id="rfc.section.A.1.1.p.3">If the server is willing to use one of the client&#8217;s requested mechanisms, it responds with a <samp>key_share</samp> extension containing its public key for the desired mechanism.</p>
+<p id="rfc.section.A.1.1.p.4">If the server is not willing to use any of the client&#8217;s requested mechanisms, the server responds with a <samp>HelloRetryRequest</samp> message that includes an extension indicating its preferred mechanism.</p>
+<h1 id="rfc.appendix.A.1.2">
+<a href="#rfc.appendix.A.1.2">A.1.2.</a> <a href="#neg-ind" id="neg-ind">(Neg-Ind) Negotiating component algorithms individually</a>
+</h1>
+<p id="rfc.section.A.1.2.p.1">In these three approaches, the parties negotiate which traditional algorithm and which next-gen algorithm to use independently.  The <samp>NamedGroup</samp> enum is extended to include algorithm identifiers for each next-gen algorithm.</p>
+<h1 id="rfc.appendix.A.1.2.1">
+<a href="#rfc.appendix.A.1.2.1">A.1.2.1.</a> <a href="#neg-ind-1" id="neg-ind-1">(Neg-Ind-1)</a>
+</h1>
+<p id="rfc.section.A.1.2.1.p.1">The client advertises two lists to the server: one list containing its supported traditional mechanisms (e.g. via the existing <samp>ClientHello</samp> <samp>supported_groups</samp> extension), and a second list containing its supported next-generation mechanisms (e.g., via an additional <samp>ClientHello</samp> extension).  A server could then select one algorithm from the traditional list, and one algorithm from the next-generation list.  (This is the approach in <a href="#SCHANCK" class="xref">[SCHANCK]</a>.)</p>
+<h1 id="rfc.appendix.A.1.2.2">
+<a href="#rfc.appendix.A.1.2.2">A.1.2.2.</a> <a href="#neg-ind-2" id="neg-ind-2">(Neg-Ind-2)</a>
+</h1>
+<p id="rfc.section.A.1.2.2.p.1">The client advertises a single list to the server which contains both its traditional and next-generation mechanisms (e.g., all in the existing <samp>ClientHello</samp> <samp>supported_groups</samp> extension), but with some external table provides a standardized mapping of those mechanisms as either &#8220;traditional&#8221; or &#8220;next-generation&#8221;.  A server could then select two algorithms from this list, one from each category.</p>
+<h1 id="rfc.appendix.A.1.2.3">
+<a href="#rfc.appendix.A.1.2.3">A.1.2.3.</a> <a href="#neg-ind-3" id="neg-ind-3">(Neg-Ind-3)</a>
+</h1>
+<p id="rfc.section.A.1.2.3.p.1">The client advertises a single list to the server delimited into sublists: one for its traditional mechanisms and one for its next-generation mechanisms, all in the existing <samp>ClientHello</samp> <samp>supported_groups</samp> extension, with a special code point serving as a delimiter between the two lists.  For example, <samp>supported_groups = secp256r1, x25519, delimiter, nextgen1, nextgen4</samp>.</p>
+<h1 id="rfc.appendix.A.1.3">
+<a href="#rfc.appendix.A.1.3">A.1.3.</a> <a href="#neg-comb" id="neg-comb">(Neg-Comb) Negotiating component algorithms as a combination</a>
+</h1>
+<p id="rfc.section.A.1.3.p.1">In these three approaches, combinations of key exchange mechanisms appear as a single monolithic block; the parties negotiate which of several combinations they wish to use.</p>
+<h1 id="rfc.appendix.A.1.3.1">
+<a href="#rfc.appendix.A.1.3.1">A.1.3.1.</a> <a href="#neg-comb-1" id="neg-comb-1">(Neg-Comb-1)</a>
+</h1>
+<p id="rfc.section.A.1.3.1.p.1">The <samp>NamedGroup</samp> enum is extended to include algorithm identifiers for each <strong>combination</strong> of algorithms desired by the working group.  There is no &#8220;internal structure&#8221; to the algorithm identifiers for each combination, they are simply new code points assigned arbitrarily.  The client includes any desired combinations in its <samp>ClientHello</samp> <samp>supported_groups</samp> list, and the server picks one of these.  This is the approach in <a href="#KIEFER" class="xref">[KIEFER]</a> and <a href="#OQS-111" class="xref">[OQS-111]</a>.</p>
+<h1 id="rfc.appendix.A.1.3.2">
+<a href="#rfc.appendix.A.1.3.2">A.1.3.2.</a> <a href="#neg-comb-2" id="neg-comb-2">(Neg-Comb-2)</a>
+</h1>
+<p id="rfc.section.A.1.3.2.p.1">The <samp>NamedGroup</samp> enum is extended to include algorithm identifiers for each next-gen algorithm.  Some additional field/extension is used to convey which combinations the parties wish to use.  For example, in <a href="#WHYTE13" class="xref">[WHYTE13]</a>, there are distinguished <samp>NamedGroup</samp> called <samp>hybrid_marker 0</samp>, <samp>hybrid_marker 1</samp>, <samp>hybrid_marker 2</samp>, etc.  This is complemented by a <samp>HybridExtension</samp> which contains mappings for each numbered <samp>hybrid_marker</samp> to the set of component key exchange algorithms (2 or more) for that proposed combination.</p>
+<h1 id="rfc.appendix.A.1.3.3">
+<a href="#rfc.appendix.A.1.3.3">A.1.3.3.</a> <a href="#neg-comb-3" id="neg-comb-3">(Neg-Comb-3)</a>
+</h1>
+<p id="rfc.section.A.1.3.3.p.1">The client lists combinations in <samp>supported_groups</samp> list, using a special delimiter to indicate combinations.  For example, <samp>supported_groups = combo_delimiter, secp256r1, nextgen1, combo_delimiter, secp256r1, nextgen4, standalone_delimiter, secp256r1, x25519</samp> would indicate that the client&#8217;s highest preference is the combination secp256r1+nextgen1, the next highest preference is the combination secp2561+nextgen4, then the single algorithm secp256r1, then the single algorithm x25519.  A hybrid-aware server would be able to parse these; a hybrid-unaware server would see <samp>unknown, secp256r1, unknown, unknown, secp256r1, unknown, unknown, secp256r1, x25519</samp>, which it would be able to process, although there is the potential that every &#8220;projection&#8221; of a hybrid list that is tolerable to a client does not result in list that is tolerable to the client.</p>
+<h1 id="rfc.appendix.A.1.4">
+<a href="#rfc.appendix.A.1.4">A.1.4.</a> <a href="#benefits-and-drawbacks" id="benefits-and-drawbacks">Benefits and drawbacks</a>
+</h1>
+<p><strong>Combinatorial explosion.</strong> <a href="#neg-comb-1" class="xref">(Neg-Comb-1)</a> requires new identifiers to be defined for each desired combination.  The other 4 options in this section do not.</p>
+<p><strong>Extensions.</strong> <a href="#neg-ind-1" class="xref">(Neg-Ind-1)</a> and <a href="#neg-comb-2" class="xref">(Neg-Comb-2)</a> require new extensions to be defined.  The other options in this section do not.</p>
+<p><strong>New logic.</strong> All options in this section except <a href="#neg-comb-1" class="xref">(Neg-Comb-1)</a> require new logic to process negotiation.</p>
+<p><strong>Matching security levels.</strong> <a href="#neg-ind-1" class="xref">(Neg-Ind-1)</a>, <a href="#neg-ind-2" class="xref">(Neg-Ind-2)</a>, <a href="#neg-ind-3" class="xref">(Neg-Ind-3)</a>, and <a href="#neg-comb-2" class="xref">(Neg-Comb-2)</a> allow algorithms of different claimed security level from their corresponding lists to be combined.  For example, this could result in combining ECDH secp256r1 (classical security level 128) with NewHope-1024 (classical security level 256).  Implementations dissatisfied with a mismatched security levels must either accept this mismatch or attempt to renegotiate.  <a href="#neg-ind-1" class="xref">(Neg-Ind-1)</a>, <a href="#neg-ind-2" class="xref">(Neg-Ind-2)</a>, and <a href="#neg-ind-3" class="xref">(Neg-Ind-3)</a> give control over the combination to the server; <a href="#neg-comb-2" class="xref">(Neg-Comb-2)</a> gives control over the combination to the client.  <a href="#neg-comb-1" class="xref">(Neg-Comb-1)</a> only allows standardized combinations, which could be set by TLS working group to have matching security (provided security estimates do not evolve separately).</p>
+<p><strong>Backwards-compability.</strong> TLS 1.3-compliant hybrid-unaware servers should ignore unreocgnized elements in <samp>supported_groups</samp> <a href="#neg-ind-2" class="xref">(Neg-Ind-2)</a>, <a href="#neg-ind-3" class="xref">(Neg-Ind-3)</a>, <a href="#neg-comb-1" class="xref">(Neg-Comb-1)</a>, <a href="#neg-comb-2" class="xref">(Neg-Comb-2)</a> and unrecognized <samp>ClientHello</samp> extensions <a href="#neg-ind-1" class="xref">(Neg-Ind-1)</a>, <a href="#neg-comb-2" class="xref">(Neg-Comb-2)</a>.  In <a href="#neg-ind-3" class="xref">(Neg-Ind-3)</a> and <a href="#neg-comb-3" class="xref">(Neg-Comb-3)</a>, a server that is hybrid-unaware will ignore the delimiters in <samp>supported_groups</samp>, and thus might try to negotiate an algorithm individually that is only meant to be used in combination; depending on how such an implementation is coded, it may also encounter bugs when the same element appears multiple times in the list.</p>
+<h1 id="rfc.appendix.A.2">
+<a href="#rfc.appendix.A.2">A.2.</a> <a href="#num" id="num">(Num) How many component algorithms to combine?</a>
+</h1>
+<h1 id="rfc.appendix.A.2.1">
+<a href="#rfc.appendix.A.2.1">A.2.1.</a> <a href="#num-2" id="num-2">(Num-2) Two</a>
+</h1>
+<p id="rfc.section.A.2.1.p.1">Exactly two algorithms can be combined together in hybrid key exchange.  This is the approach taken in <a href="#KIEFER" class="xref">[KIEFER]</a> and <a href="#SCHANCK" class="xref">[SCHANCK]</a>.</p>
+<h1 id="rfc.appendix.A.2.2">
+<a href="#rfc.appendix.A.2.2">A.2.2.</a> <a href="#num-2-plus" id="num-2-plus">(Num-2+) Two or more</a>
+</h1>
+<p id="rfc.section.A.2.2.p.1">Two or more algorithms can be combined together in hybrid key exchange.  This is the approach taken in <a href="#WHYTE13" class="xref">[WHYTE13]</a>.</p>
+<h1 id="rfc.appendix.A.2.3">
+<a href="#rfc.appendix.A.2.3">A.2.3.</a> <a href="#benefits-and-drawbacks-1" id="benefits-and-drawbacks-1">Benefits and Drawbacks</a>
+</h1>
+<p id="rfc.section.A.2.3.p.1">Restricting the number of component algorithms that can be hybridized to two substantially reduces the generality required.  On the other hand, some adopters may want to further reduce risk by employing multiple next-gen algorithms built on different cryptographic assumptions.</p>
+<h1 id="rfc.appendix.A.3">
+<a href="#rfc.appendix.A.3">A.3.</a> <a href="#shares" id="shares">(Shares) How to convey key shares?</a>
+</h1>
+<p id="rfc.section.A.3.p.1">In ECDH ephmeral key exchange, the client sends its ephmeral public key in the <samp>key_share</samp> extension of the <samp>ClientHello</samp> message, and the server sends its ephmeral public key in the <samp>key_share</samp> extension of the <samp>ServerHello</samp> message.</p>
+<p id="rfc.section.A.3.p.2">For a general key encapsulation mechanism used for ephemeral key exchange, we imagine that that client generates a fresh KEM public key / secret pair for each connection, sends it to the client, and the server responds with a KEM ciphertext.  For simplicity and consistency with TLS 1.3 terminology, we will refer to both of these types of objects as &#8220;key shares&#8221;.</p>
+<p id="rfc.section.A.3.p.3">In hybrid key exchange, we have to decide how to convey the client&#8217;s two (or more) key shares, and the server&#8217;s two (or more) key shares.</p>
+<h1 id="rfc.appendix.A.3.1">
+<a href="#rfc.appendix.A.3.1">A.3.1.</a> <a href="#shares-concat" id="shares-concat">(Shares-Concat) Concatenate key shares</a>
+</h1>
+<p id="rfc.section.A.3.1.p.1">The client concatenates the bytes representing its two key shares and uses this directly as the <samp>key_exchange</samp> value in a <samp>KeyShareEntry</samp> in its <samp>key_share</samp> extension.  The server does the same thing.  Note that the <samp>key_exchange</samp> value can be an octet string of length at most 2^16-1.  This is the approach taken in <a href="#KIEFER" class="xref">[KIEFER]</a>, <a href="#OQS-111" class="xref">[OQS-111]</a>, and <a href="#WHYTE13" class="xref">[WHYTE13]</a>.</p>
+<h1 id="rfc.appendix.A.3.2">
+<a href="#rfc.appendix.A.3.2">A.3.2.</a> <a href="#shares-multiple" id="shares-multiple">(Shares-Multiple) Send multiple key shares</a>
+</h1>
+<p id="rfc.section.A.3.2.p.1">The client sends multiple key shares directly in the <samp>client_shares</samp> vectors of the <samp>ClientHello</samp> <samp>key_share</samp> extension.  The server does the same.  (Note that while the existing <samp>KeyShareClientHello</samp> struct allows for multiple key share entries, the existing <samp>KeyShareServerHello</samp> only permits a single key share entry, so some modification would be required to use this approach for the server to send multiple key shares.)</p>
+<h1 id="rfc.appendix.A.3.3">
+<a href="#rfc.appendix.A.3.3">A.3.3.</a> <a href="#shares-ext-additional" id="shares-ext-additional">(Shares-Ext-Additional) Extension carrying additional key shares</a>
+</h1>
+<p id="rfc.section.A.3.3.p.1">The client sends the key share for its traditional algorithm in the original <samp>key_share</samp> extension of the <samp>ClientHello</samp> message, and the key share for its next-gen algorithm in some additional extension in the <samp>ClientHello</samp> message.  The server does the same thing.  This is the approach taken in <a href="#SCHANCK" class="xref">[SCHANCK]</a>.</p>
+<h1 id="rfc.appendix.A.3.4">
+<a href="#rfc.appendix.A.3.4">A.3.4.</a> <a href="#benefits-and-drawbacks-2" id="benefits-and-drawbacks-2">Benefits and Drawbacks</a>
+</h1>
+<p><strong>Backwards compatibility.</strong> <a href="#shares-multiple" class="xref">(Shares-Multiple)</a> is fully backwards compatible with non-hybrid-aware servers.  <a href="#shares-ext-additional" class="xref">(Shares-Ext-Additional)</a> is backwards compatible with non-hybrid-aware servers provided they ignore unrecognized extensions.  <a href="#shares-concat" class="xref">(Shares-Concat)</a> is backwards-compatible with non-hybrid aware servers, but may result in duplication / additional round trips (see below).</p>
+<p><strong>Duplication versus additional round trips.</strong> If a client wants to offer multiple key shares for multiple combinations in order to avoid retry requests, then the client may ended up sending a key share for one algorithm multiple times when using <a href="#shares-ext-additional" class="xref">(Shares-Ext-Additional)</a> and <a href="#shares-concat" class="xref">(Shares-Concat)</a>.  (For example, if the client wants to send an ECDH-secp256r1 + McEliece123 key share, and an ECDH-secp256r1 + NewHope1024 key share, then the same ECDH public key may be sent twice.  If the client also wants to offer a traditional ECDH-only key share for non-hybrid-aware implementations and avoid retry requests, then that same ECDH public key may be sent another time.)  <a href="#shares-multiple" class="xref">(Shares-Multiple)</a> does not result in duplicate key shares.</p>
+<h1 id="rfc.appendix.A.4">
+<a href="#rfc.appendix.A.4">A.4.</a> <a href="#comb" id="comb">(Comb) How to use keys?</a>
+</h1>
+<p id="rfc.section.A.4.p.1">Each component key exchange algorithm establishes a shared secret.  These shared secrets must be combined in some way that achieves the &#8220;hybrid&#8221; property: the resulting secret is secure as long as at least one of the component key exchange algorithms is unbroken.</p>
+<h1 id="rfc.appendix.A.4.1">
+<a href="#rfc.appendix.A.4.1">A.4.1.</a> <a href="#comb-concat" id="comb-concat">(Comb-Concat) Concatenate keys</a>
+</h1>
+<p id="rfc.section.A.4.1.p.1">Each party concatenates the shared secrets established by each component algorithm in an agreed-upon order, then feeds that through the TLS key schedule.  In the context of TLS 1.3, this would mean using the concatenated shared secret in place of the (EC)DHE input to the second call to <samp>HKDF-Extract</samp> in the TLS 1.3 key schedule:</p>
+<pre>
+                                    0
+                                    |
+                                    v
+                      PSK -&gt;  HKDF-Extract = Early Secret
+                                    |
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+concatenated_shared_secret -&gt; HKDF-Extract = Handshake Secret
+^^^^^^^^^^^^^^^^^^^^^^^^^^          |
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+                         0 -&gt; HKDF-Extract = Master Secret
+                                    |
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+</pre>
+<p id="rfc.section.A.4.1.p.2">This is the approach used in <a href="#KIEFER" class="xref">[KIEFER]</a>, <a href="#OQS-111" class="xref">[OQS-111]</a>, and <a href="#WHYTE13" class="xref">[WHYTE13]</a>.</p>
+<p><a href="#GIACON" class="xref">[GIACON]</a> analyzes the security of applying a KDF to concatenated KEM shared secrets, but their analysis does not exactly apply here since the transcript of ciphertexts is included in the KDF application (though it should follow relatively straightforwardly).</p>
+<p><a href="#BINDEL" class="xref">[BINDEL]</a> analyzes the security of the (Comb-Concat) approach as abstracted in their <samp>dualPRF</samp> combiner.  They show that, if the component KEMs are IND-CPA-secure (or IND-CCA-secure), then the values output by <samp>Derive-Secret</samp> are IND-CPA-secure (respectively, IND-CCA-secure).  An important aspect of their analysis is that each ciphertext is input to the final PRF calls; this holds for TLS 1.3 since the <samp>Derive-Secret</samp> calls that derive output keys (application traffic secrets, and exporter and resumption master secrets) include the transcript hash as input.</p>
+<h1 id="rfc.appendix.A.4.2">
+<a href="#rfc.appendix.A.4.2">A.4.2.</a> <a href="#comb-kdf-1" id="comb-kdf-1">(Comb-KDF-1) KDF keys</a>
+</h1>
+<p id="rfc.section.A.4.2.p.1">Each party feeds the shared secrets established by each component algorithm in an agreed-upon order into a KDF, then feeds that through the TLS key schedule.  In the context of TLS 1.3, this would mean first applying <samp>HKDF-Extract</samp> to the shared secrets, then using the output in place of the (EC)DHE input to the second call to <samp>HKDF-Extract</samp> in the TLS 1.3 key schedule:</p>
+<pre>
+                                    0
+                                    |
+                                    v
+                      PSK -&gt;  HKDF-Extract = Early Secret
+                                    |
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+               Next-Gen             |
+                   |                v
+  (EC)DHE -&gt; HKDF-Extract     Derive-Secret(., "derived", "")
+                   |                |
+                   v                v
+                output -----&gt; HKDF-Extract = Handshake Secret
+                ^^^^^^              |
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+                         0 -&gt; HKDF-Extract = Master Secret
+                                    |
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+</pre>
+<h1 id="rfc.appendix.A.4.3">
+<a href="#rfc.appendix.A.4.3">A.4.3.</a> <a href="#comb-kdf-2" id="comb-kdf-2">(Comb-KDF-2) KDF keys</a>
+</h1>
+<p id="rfc.section.A.4.3.p.1">Each party concatenates the shared secrets established by each component algorithm in an agreed-upon order then feeds that into a KDF, then feeds the result through the TLS key schedule.</p>
+<p id="rfc.section.A.4.3.p.2">Compared with <a href="#comb-kdf-1" class="xref">(Comb-KDF-1)</a>, this method concatenates the (2 or more) shared secrets prior to input to the KDF, whereas (Comb-KDF-1) puts the (exactly 2) shared secrets in the two different input slots to the KDF.</p>
+<p id="rfc.section.A.4.3.p.3">Compared with <a href="#comb-concat" class="xref">(Comb-Concat)</a>, this method has an extract KDF application.  While this adds computational overhead, this may provide a cleaner abstraction of the hybridization mechanism for the purposes of formal security analysis.</p>
+<pre>
+                                    0
+                                    |
+                                    v
+                      PSK -&gt;  HKDF-Extract = Early Secret
+                                    |
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    |
+                                   v
+  concatenated     0
+  shared           |
+  secret  -&gt; HKDF-Extract     Derive-Secret(., "derived", "")
+  ^^^^^^           |                |
+                   v                v
+                output -----&gt; HKDF-Extract = Handshake Secret
+                ^^^^^^              |
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+                         0 -&gt; HKDF-Extract = Master Secret
+                                    |
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+</pre>
+<h1 id="rfc.appendix.A.4.4">
+<a href="#rfc.appendix.A.4.4">A.4.4.</a> <a href="#comb-xor" id="comb-xor">(Comb-XOR) XOR keys</a>
+</h1>
+<p id="rfc.section.A.4.4.p.1">Each party XORs the shared secrets established by each component algorithm (possibly after padding secrets of different lengths), then feeds that through the TLS key schedule.  In the context of TLS 1.3, this would mean using the XORed shared secret in place of the (EC)DHE input to the second call to <samp>HKDF-Extract</samp> in the TLS 1.3 key schedule.</p>
+<p><a href="#GIACON" class="xref">[GIACON]</a> analyzes the security of applying a KDF to the XORed KEM shared secrets, but their analysis does not quite apply here since the transcript of ciphertexts is included in the KDF application (though it should follow relatively straightforwardly).</p>
+<h1 id="rfc.appendix.A.4.5">
+<a href="#rfc.appendix.A.4.5">A.4.5.</a> <a href="#comb-chain" id="comb-chain">(Comb-Chain) Chain of KDF applications for each key</a>
+</h1>
+<p id="rfc.section.A.4.5.p.1">Each party applies a chain of key derivation functions to the shared secrets established by each component algorithm in an agreed-upon order; roughly speaking: <samp>F(k1 || F(k2))</samp>.  In the context of TLS 1.3, this would mean extending the key schedule to have one round of the key schedule applied for each component algorithm&#8217;s shared secret:</p>
+<pre>
+                                    0
+                                    |
+                                    v
+                      PSK -&gt;  HKDF-Extract = Early Secret
+                                    |
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+ traditional_shared_secret -&gt; HKDF-Extract
+ ^^^^^^^^^^^^^^^^^^^^^^^^^          |
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+    next_gen_shared_secret -&gt; HKDF-Extract = Handshake Secret
+    ^^^^^^^^^^^^^^^^^^^^^^          |                             
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+                         0 -&gt; HKDF-Extract = Master Secret
+                                    |
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+</pre>
+<p id="rfc.section.A.4.5.p.2">This is the approach used in <a href="#SCHANCK" class="xref">[SCHANCK]</a>.</p>
+<p><a href="#BINDEL" class="xref">[BINDEL]</a> analyzes the security of this approach as abstracted in their nested dual-PRF <samp>N</samp> combiner, showing a similar result as for the dualPRF combiner that it preserves IND-CPA (or IND-CCA) security. Again their analysis depends on each ciphertext being input to the final PRF (<samp>Derive-Secret</samp>) calls, which holds for TLS 1.3.</p>
+<h1 id="rfc.appendix.A.4.6">
+<a href="#rfc.appendix.A.4.6">A.4.6.</a> <a href="#comb-altinput" id="comb-altinput">(Comb-AltInput) Second shared secret in an alternate KDF input</a>
+</h1>
+<p id="rfc.section.A.4.6.p.1">In the context of TLS 1.3, the next-generation shared secret is used in place of a currently unused input in the TLS 1.3 key schedule, namely replacing the <samp>0</samp> &#8220;IKM&#8221; input to the final <samp>HKDF-Extract</samp>:</p>
+<pre>
+                                    0
+                                    |
+                                    v
+                      PSK -&gt;  HKDF-Extract = Early Secret
+                                    |
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+ traditional_shared_secret -&gt; HKDF-Extract = Handshake Secret
+ ^^^^^^^^^^^^^^^^^^^^^^^^^          |
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+    next_gen_shared_secret -&gt; HKDF-Extract = Master Secret
+    ^^^^^^^^^^^^^^^^^^^^^^          |
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+                                    +-----&gt; Derive-Secret(...)
+</pre>
+<p id="rfc.section.A.4.6.p.2">This approach is not taken in any of the known post-quantum/hybrid TLS drafts.  However, it bears some similarities to the approach for using external PSKs in <a href="#EXTERN-PSK" class="xref">[EXTERN-PSK]</a>.</p>
+<h1 id="rfc.appendix.A.4.7">
+<a href="#rfc.appendix.A.4.7">A.4.7.</a> <a href="#benefits-and-drawbacks-3" id="benefits-and-drawbacks-3">Benefits and Drawbacks</a>
+</h1>
+<p><strong>New logic.</strong>  While <a href="#comb-concat" class="xref">(Comb-Concat)</a>, <a href="#comb-kdf-1" class="xref">(Comb-KDF-1)</a>, and <a href="#comb-kdf-2" class="xref">(Comb-KDF-2)</a> require new logic to compute the concatenated shared secret, this value can then be used by the TLS 1.3 key schedule without changes to the key schedule logic.  In contrast, <a href="#comb-chain" class="xref">(Comb-Chain)</a> requires the TLS 1.3 key schedule to be extended for each extra component algorithm.</p>
+<p><strong>Philosophical.</strong>  The TLS 1.3 key schedule already applies a new stage for different types of keying material (PSK versus (EC)DHE), so <a href="#comb-chain" class="xref">(Comb-Chain)</a> continues that approach.</p>
+<p><strong>Efficiency.</strong> <a href="#comb-kdf-1" class="xref">(Comb-KDF-1)</a>, <a href="#comb-kdf-2" class="xref">(Comb-KDF-2)</a>, and <a href="#comb-chain" class="xref">(Comb-Chain)</a> increase the number of KDF applications for each component algorithm, whereas <a href="#comb-concat" class="xref">(Comb-Concat)</a> and <a href="#comb-altinput" class="xref">(Comb-AltInput)</a> keep the number of KDF applications the same (though with potentially longer inputs).</p>
+<p><strong>Extensibility.</strong>  <a href="#comb-altinput" class="xref">(Comb-AltInput)</a> changes the use of an existing input, which might conflict with other future changes to the use of the input.</p>
+<p><strong>More than 2 component algorithms.</strong>  The techniques in <a href="#comb-concat" class="xref">(Comb-Concat)</a> and <a href="#comb-chain" class="xref">(Comb-Chain)</a> can naturally accommodate more than 2 component shared secrets since there is no distinction to how each shared secret is treated.  <a href="#comb-altinput" class="xref">(Comb-AltInput)</a> would have to make some distinct, since the 2 component shared secrets are used in different ways; for example, the first shared secret is used as the &#8220;IKM&#8221; input in the 2nd <samp>HKDF-Extract</samp> call, and all subsequent shared secrets are concatenated to be used as the &#8220;IKM&#8221; input in the 3rd <samp>HKDF-Extract</samp> call.</p>
 <h1 id="rfc.authors"><a href="#rfc.authors">Authors' Addresses</a></h1>
 <div class="avoidbreak">
   <address class="vcard">
