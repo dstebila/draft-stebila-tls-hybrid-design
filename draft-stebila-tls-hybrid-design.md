@@ -1,8 +1,8 @@
 ---
-title: Design issues for hybrid key exchange in TLS 1.3
+title: Hybrid key exchange in TLS 1.3
 abbrev: stebila-tls-hybrid-design
 docname: draft-stebila-tls-hybrid-design-latest
-date: 2019-07-08
+date: 2020-01-21
 category: info
 
 ipr: trust200902
@@ -35,22 +35,7 @@ normative:
 informative:
   BCNS15: DOI.10.1109/SP.2015.40
   BERNSTEIN: DOI.10.1007/978-3-540-88702-7
-  BINDEL:
-    target: https://eprint.iacr.org/2018/903
-    title: Hybrid Key Encapsulation Mechanisms and Authenticated Key Exchange
-    author:
-      -
-        ins: N. Bindel
-      -
-        ins: J. Brendel
-      -
-        ins: M. Fischlin
-      -
-        ins: B. Goncalves
-      -
-        ins: D. Stebila
-    seriesinfo: Post-Quantum Cryptography (PQCrypto)
-    date: 2019
+  BINDEL: DOI.10.1007/978-3-030-25510-7_12
   CECPQ1:
     target: https://security.googleblog.com/2016/07/experimenting-with-post-quantum.html
     title: Experimenting with Post-Quantum Cryptography
@@ -83,6 +68,7 @@ informative:
   EXTERN-PSK: I-D.ietf-tls-tls13-cert-with-extern-psk
   FRODO: DOI.10.1145/2976749.2978425
   GIACON: DOI.10.1007/978-3-319-76578-5_7
+  GREASE: I-D.ietf-tls-grease
   HARNIK: DOI.10.1007/11426639_6
   HOFFMAN: I-D.hoffman-c2pq
   IKE-HYBRID: I-D.tjhai-ipsecme-hybrid-qske-ikev2
@@ -142,13 +128,15 @@ informative:
 
 --- abstract
 
-Hybrid key exchange refers to using multiple key exchange algorithms simultaneously and combining the result with the goal of providing security even if all but one of the component algorithms is broken, and is motivated by transition to post-quantum cryptography.  This document categorizes various design considerations for using hybrid key exchange in the Transport Layer Security (TLS) protocol version 1.3 and outlines two concrete instantiations for consideration.
+Hybrid key exchange refers to using multiple key exchange algorithms simultaneously and combining the result with the goal of providing security even if all but one of the component algorithms is broken, and is motivated by transition to post-quantum cryptography.  This document provides a construction for hybrid key exchange in the Transport Layer Security (TLS) protocol version 1.3.
 
 --- middle
 
 # Introduction {#introduction}
 
-This document categorizes various design decisions one could make when implementing hybrid key exchange in TLS 1.3, with the goal of fostering discussion, providing options for short-term prototypes/experiments, and serving as a basis for eventual standardization.  This document also includes two concrete instantiations for consideration, following two different approaches; it is not our intention that both be standardized.
+This document gives a construction for implementing hybrid key exchange in TLS 1.3.  The overall design approach is a simple, "concatenation"-based approach: each hybrid key exchange combination should be viewed as a single new key exchange method, negotiated and transmitted using the existing TLS 1.3 mechanisms.
+
+Earlier versions of this document categorized various design decisions one could make when implementing hybrid key exchange in TLS 1.3.  These have been moved to the appendix of the current draft, and will be eventually be removed.
 
 This document does not propose specific post-quantum mechanisms; see {{scope}} for more on the scope of this document.
 
@@ -159,8 +147,10 @@ Comments are solicited and should be addressed to the TLS working group mailing 
 - draft-00: Initial version.
 - draft-01:
     - Add [(Comb-KDF-1)](#comb-kdf-1) and [(Comb-KDF-2)](#comb-kdf-2) options.
-    - Add [Candidate Instantiation 1](#candidate-1).
-    - Add [Candidate Instantiation 2](#candidate-2).
+    - Add two candidate instantiations.
+- draft-02:
+    - Design considerations from draft-00 and draft-01 are moved to the appendix.
+    - A single construction is given in the main body.
 
 ## Terminology {#terminology}
 
@@ -172,6 +162,8 @@ For the purposes of this document, it is helpful to be able to divide cryptograp
 "Hybrid" key exchange, in this context, means the use of two (or more) key exchange mechanisms based on different cryptographic assumptions (for example, one traditional algorithm and one next-gen algorithm), with the purpose of the final session key being secure as long as at least one of the component key exchange mechanisms remains unbroken.  We use the term "component" algorithms to refer to the algorithms that are being combined in a hybrid key exchange.
 
 The primary motivation of this document is preparing for post-quantum algorithms.  However, it is possible that public key cryptography based on alternative mathematical constructions will be required independent of the advent of a quantum computer, for example because of a cryptanalytic breakthrough.  As such we opt for the more generic term "next-generation" algorithms rather than exclusively "post-quantum" algorithms.
+
+Note that TLS 1.3 uses the phrase "groups" to refer to key exchange algorithms -- for example, the `supported_groups` extension -- since all key exchange algorithms in TLS 1.3 are Diffie--Hellman-based.  As a result, some parts of this document will refer to data structures or messages with the term "group" in them despite using a key exchange algorithm that is not Diffie--Hellman-based nor a group.
 
 ## Motivation for use of hybrid key exchange {#motivation}
 
@@ -238,16 +230,176 @@ Considering other IETF standards, there is work on post-quantum preshared keys i
 
 In the academic literature, {{EVEN}} initiated the study of combining multiple symmetric encryption schemes; {{ZHANG}}, {{DODIS}}, and {{HARNIK}} examined combining multiple public key encryption schemes, and {{HARNIK}} coined the term "robust combiner" to refer to a compiler that constructs a hybrid scheme from individual schemes while preserving security properties.  {{GIACON}} and {{BINDEL}} examined combining multiple key encapsulation mechanisms.
 
-# Overview {#overview}
+# Key encapsulation mechanisms
 
-We identify four distinct axes along which one can make choices when integrating hybrid key exchange into TLS 1.3:
+In the context of the NIST Post-Quantum Cryptography Standardization Project, key exchange algorithms are formulated as key encapsulation mechanisms (KEMs), which consist of three algorithms:
+
+- `KeyGen() -> (pk, sk)`: A probabilistic key generation algorithm, which generates a public key `pk` and a secret key `sk`.
+- `Encaps(pk) -> (ct, ss)`: A probabilistic encapsulation algorithm, which takes as input a public key `pk` and outputs a ciphertext `ct` and shared secret `ss`.
+- `Decaps(sk, ct) -> ss`: A decapsulation algorithm, which takes as input a secret key `sk` and ciphertext `ct` and outputs a shared secret `ss`, or in some cases a distinguished error value.
+
+The main security property for KEMs is indistinguishability under adaptive chosen ciphertext attack (IND-CCA2), which means that shared secret values should be indistinguishable from random strings even given the ability to have arbitrary ciphertexts decapsulated.  IND-CCA2 corresponds to security against an active attacker, and the public key / secret key pair can be treated as a long-term key or reused.  A weaker security notion is indistinguishability under chosen plaintext attack (IND-CPA), which means that the shared secret values should be indistinguishable from random strings given a copy of the public key.  IND-CPA roughly corresponds to security against a passive attacker, and sometimes corresponds to ephemeral key exchange.
+
+Key exchange in TLS 1.3 is phrased in terms of Diffie--Hellman key exchange in a group.  DH key exchange can be modeled as a KEM, with `KeyGen` corresponding to selecting an exponent `x` as the secret key and computing the public key `g^x`; encapsulation corresponding to selecting an exponent `y`, computing the ciphertext `g^y` and the shared secret `g^(xy)`, and decapsulation as computing the shared secret `g^(xy)`.
+
+# Construction for hybrid key exchange {#construction}
+
+## Negotiation {#construction-negotiation}
+
+Each particular combination of algorithms in a hybrid key exchange will be represented as a `NamedGroup` and sent in the `supported_groups` extension.  No internal structure or grammer is implied or required in the value of the identifier; they are simply opaque identifiers.
+
+Each value representing a hybrid key exchange will correspond to an ordered pair of two groups otherwise listed in the `NamedGroup` enum.  For example, suppose a future document specified a `NamedGroup` identifier for the post-quantum KEM ntruhrss701; that document could also specify that hybrid value 0x2000 corresponds to secp256r1+ntruhrss701, and 0x2001 corresponds to x25519+ntruhrss701.
+
+Specific values shall be standardized by IANA in the TLS Supported Groups registry.  We suggest that values 0x2000 through 0x2EFF are suitable for hybrid key exchange methods (the leading "2" suggesting that there are 2 algorithms), noting that 0x2A2A is reserved as a GREASE value {{GREASE}}.  This document requests that values 0x2F00 through 0x2FFF be reserved for Private Use for hybrid key exchange.
+
+    enum {
+
+          /* Elliptic Curve Groups (ECDHE) */
+          secp256r1(0x0017), secp384r1(0x0018), secp521r1(0x0019),
+          x25519(0x001D), x448(0x001E),
+
+          /* Finite Field Groups (DHE) */
+          ffdhe2048(0x0100), ffdhe3072(0x0101), ffdhe4096(0x0102),
+          ffdhe6144(0x0103), ffdhe8192(0x0104),
+
+          /* Hybrid Key Exchange Methods */
+          TBD(0xTBD), ...,
+
+          /* Reserved Code Points */
+          ffdhe_private_use(0x01FC..0x01FF),
+          hybrid_private_use(0x2F00..0x2FFF),
+          ecdhe_private_use(0xFE00..0xFEFF),
+          (0xFFFF)
+    } NamedGroup;
+
+## Transmitting public keys and ciphertexts {#construction-transmitting}
+
+We take the relatively simple "concatenation approach": the messages from the two algorithms being hybridized will be concatenated together and transmitted as a single value, to avoid having to change existing data structures.  However we do use some structure in the concenation procedure, specifically including length fields, so that the concatenation operation is unambiguous.  Note that among the Round 2 candidates in the NIST Post-Quantum Cryptography Standardization Project, not all algorithms have fixed public key sizes; for example, the SIKE key encapsulation mechanism permits compressed or uncompressed public keys at each security level, and the compressed and uncompressed formats are interoperable.
+
+Recall that in TLS 1.3 a KEM public key or KEM ciphertext is represented as a `KeyShareEntry`:
+
+    struct {
+        NamedGroup group;
+        opaque key_exchange<1..2^16-1>;
+    } KeyShareEntry;
+
+These are transmitted in the `extension_data` fields of `KeyShareClientHello` and `KeyShareServerHello` extensions:
+
+    struct {
+        KeyShareEntry client_shares<0..2^16-1>;
+    } KeyShareClientHello;
+
+    struct {
+        KeyShareEntry server_share;
+    } KeyShareServerHello;
+
+The client's shares are listed in descending order of client preference; the server selects one algorithm and sends its corresponding share.
+
+For a hybrid key exchange, the `key_exchange` field of a `KeyShareEntry` is the following data structure:
+
+    struct {
+        opaque key_exchange_1<1..2^16-1>;
+        opaque key_exchange_2<1..2^16-1>;
+    } HybridKeyExchange
+
+The order of shares in the `HybridKeyExchange` struct is the same as the order of algorithms indicated in the definition of the `NamedGroup`.
+
+For the client's share, the `key_exchange_1` and `key_exchange_2` values are the `pk` outputs of the corresponding KEMs' `KeyGen` algorithms.  For the server's share, the `key_exchange_1` and `key_exchange_2` values are the `ct` outputs of the corresponding KEMs' `Encaps` algorithms.
+
+## Shared secret calculation {#construction-shared-secret}
+
+Here we also take the simple "concatenation approach": the two shared secrets are concatenated together and used as the shared secret in the existing TLS 1.3 key schedule.  In this case, we do not add any additional structure (length fields) in the concatenation procedure: among all Round 2 candidates, once the algorithm and variant are specified, the shared secret output length is fixed.
+
+In other words, the shared secret is calculated as
+
+    concatenated_shared_secret = shared_secret_1 || shared_secret_2
+
+and inserted into the TLS 1.3 key schedule in place of the (EC)DHE shared secret:
+
+~~~~
+                                    0
+                                    |
+                                    v
+                      PSK ->  HKDF-Extract = Early Secret
+                                    |
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+concatenated_shared_secret -> HKDF-Extract = Handshake Secret
+^^^^^^^^^^^^^^^^^^^^^^^^^^          |
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    |
+                                    v
+                              Derive-Secret(., "derived", "")
+                                    |
+                                    v
+                         0 -> HKDF-Extract = Master Secret
+                                    |
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+                                    +-----> Derive-Secret(...)
+~~~~
+
+# Open questions {#comb-open-questions}
+
+**Larger public keys and/or ciphertexts.**
+The `HybridKeyExchange` struct in {{construction-transmitting}} limits public keys and ciphertexts to 2^16-1 bytes; this is bounded by the same (2^16-1)-byte limit on the `key_exchange` field in the `KeyShareEntry` struct.  Some post-quantum KEMs have larger public keys and/or ciphertexts; for example, Classic McEliece's smallest parameter set has public key size 261,120 bytes.  Hence this draft can not accommodate all current NIST Round 2 candidates.
+
+If it is desired to accommodate algorithms with public keys or ciphertexts larger than 2^16-1 bytes, options include a) revising the TLS 1.3 standard to allow longer `key_exchange` fields; b) creating an alternative extension which is sufficiently large; or c) providing a reference to an external public key, e.g. a URL at which to look up the public key (along with a hash to verify).
+
+**Duplication of key shares.**
+Concatenation of public keys in the `HybridKeyExchange` struct as described in {{construction-transmitting}} can result in sending duplicate key shares.  For example, if a client wanted to offer support for two combinations, say "secp256r1+sikep503" and "x25519+sikep503", it would end up sending two sikep503 public keys, since the `KeyShareEntry` for each combination contains its own copy of a sikep503 key.  This duplication may be more problematic for post-quantum algorithms which have larger public keys.
+
+If it is desired to avoid duplication of key shares, options include a) disconnect the use of a combination for the algorithm identifier from the use of concatenation of public keys by introducing new logic and/or data structures (see {{shares-multiple}} or {{shares-ext-additional}}); or b) provide some back reference from a later key share entry to an earlier one.
+
+**Variable-length shared secrets.**
+The shared secret calculation in {{construction-shared-secret}} directly concatenates the shared secret values of each scheme, rather than encoding them with length fields.  This implicitly assumes that the length of each shared secret is fixed once the algorithm is fixed.  This is the case for all Round 2 candidates.
+
+However, if it is envisioned that this specification be used with algorithms which do not have fixed-length shared secrets (after the variant has been fixed by the algorithm identifier in the `NamedGroup` negotiation in {{construction-negotiation}}), then {{construction-shared-secret}} should be revised to use an unambiguous concatenation method similar to the one used in {{construction-transmitting}}.
+
+**FIPS-compliance of shared secret concatenation.**
+{{NIST-SP-800-56C}} or {{NIST-SP-800-135}} give NIST recommendations for key derivation methods in key exchange protocols.  Some hybrid combinations in this document may combine the shared secret from a NIST-approved algorithm (e.g., ECDH using the nistp256/secp256r1 curve) with a shared secret from a non-approved algorithm (e.g., post-quantm).  Prior to advancement of this draft, guidance should be obtained from NIST on whether the combination method stated in {{construction-shared-secret}} results in a method that gives a final shared secret that is acceptable under either {{NIST-SP-800-56C}} or {{NIST-SP-800-135}}.
+
+**IND-CPA versus IND-CCA security.**
+One security consideration that is not yet resolved is whether key encapsulation mechanisms used in TLS 1.3 must be secure against active attacks (IND-CCA), or whether security against passive attacks (IND-CPA) suffices.  Existing security proofs of TLS 1.3 (such as {{DFGS15}}, {{DOWLING}}) are formulated specifically around Diffie--Hellman and use an "actively secure" Diffie--Hellman assumption (PRF Oracle Diffie--Hellman (PRF-ODH)) rather than a "passively secure" DH assumption (e.g. decisional Diffie--Hellman (DDH)), but do not claim that the actively secure notion is required.  In the context of TLS 1.2, {{KPW13}} show that, at least in one formalization, a passively secure assumption like DDH is insufficient (even when signatures are used for mutual authentication).  Resolving this issue for TLS 1.3 is an open question.
+
+**Resumption.**
+TLS 1.3 allows for session resumption via a pre-shared key.  When a pre-shared key is used during session establishment, an ephemeral key exchange can also be used to enhance forward secrecy.  If the original key exchange was hybrid, should an ephemeral key exchange in a resumption of that original key exchange be required to use the same hybrid algorithms?
+
+**Failures.**
+Some post-quantum key exchange algorithms have non-trivial failure rates: two honest parties may fail to agree on the same shared secret with non-negligible probability.  Does a non-negligible failure rate affect the security of TLS?  How should such a failure be treated operationally?  What is an acceptable failure rate?
+
+# IANA Considerations
+
+Identifiers for specific key exchange algorithm combinations will be defined in later documents.  This document requests IANA reserve values 0x2F00..0x2FFF in the TLS Supported Groups registry for private use for hybrid key exchange methods.
+
+# Security Considerations {#security-considerations}
+
+The shared secrets computed in the hybrid key exchange should be computed in a way that achieves the "hybrid" property: the resulting secret is secure as long as at least one of the component key exchange algorithms is unbroken.  See {{GIACON}} and {{BINDEL}} for an investigation of these issues.  Under the assumption that shared secrets are fixed length once the combination is fixed, the contruction from {{construction-shared-secret}} corresponds to the dual-PRF combiner of {{BINDEL}} which is shown to preserve security under the assumption that the hash function is a dual-PRF.
+
+# Acknowledgements
+
+These ideas have grown from discussions with many colleagues, including Christopher Wood, Matt Campagna, authors of the various hybrid Internet-Drafts and implementations cited in this document, and members of the TLS working group.  The immediate impetus for this document came from discussions with attendees at the Workshop on Post-Quantum Software in Mountain View, California, in January 2019.  Martin Thomson suggested the [(Comb-KDF-1)](#comb-kdf-1) approach.
+
+--- back
+
+# Design Considerations {#design-considerations}
+
+This appendix discusses choices one could make along four distinct axes when integrating hybrid key exchange into TLS 1.3:
 
 1. How to negotiate the use of hybridization in general and component algorithms specifically?
 2. How many component algorithms can be combined?
 3. How should multiple key shares (public keys / ciphertexts) be conveyed?
 4. How should multiple shared secrets be combined?
 
-The remainder of this document outlines various options we have identified for each of these choices.  Immediately below we provide a summary list.  Options are labelled with a short code in parentheses to provide easy cross-referencing.
+The construction in the main body illustrates one selection along each of these axes.  The remainder of this appendix outlines various options we have identified for each of these choices.  Immediately below we provide a summary list.  Options are labelled with a short code in parentheses to provide easy cross-referencing.
 
 1. [(Neg)](#neg) How to negotiate the use of hybridization in general and component algorithms specifically?
 
@@ -281,8 +433,6 @@ The remainder of this document outlines various options we have identified for e
     - [(Comb-XOR)](#comb-xor) XOR the shared secrets then use directly in the TLS 1.3 key schedule.
     - [(Comb-Chain)](#comb-chain) Extend the TLS 1.3 key schedule so that there is a stage of the key schedule for each shared secret.
     - [(Comb-AltInput)](#comb-altinput) Use the second shared secret in an alternate (otherwise unused) input in the TLS 1.3 key schedule.
-
-# Design options
 
 ## (Neg) How to negotiate hybridization and component algorithms? {#neg}
 
@@ -600,230 +750,3 @@ This approach is not taken in any of the known post-quantum/hybrid TLS drafts.  
 **Extensibility.**  [(Comb-AltInput)](#comb-altinput) changes the use of an existing input, which might conflict with other future changes to the use of the input.
 
 **More than 2 component algorithms.**  The techniques in [(Comb-Concat)](#comb-concat) and [(Comb-Chain)](#comb-chain) can naturally accommodate more than 2 component shared secrets since there is no distinction to how each shared secret is treated.  [(Comb-AltInput)](#comb-altinput) would have to make some distinct, since the 2 component shared secrets are used in different ways; for example, the first shared secret is used as the "IKM" input in the 2nd `HKDF-Extract` call, and all subsequent shared secrets are concatenated to be used as the "IKM" input in the 3rd `HKDF-Extract` call.
-
-### Open questions {#comb-open-questions}
-
-At this point, it is unclear which, if any, of the above methods preserve FIPS compliance: i.e., if one shared secret is from a FIPS-compliant method (e.g., ECDH), and another shared secret is from a non-approved method (e.g., post-quantum), is the result still considered FIPS compliant?  Guidance from NIST on this question would be helpful.  Specifically, are any of these approaches acceptable under either {{NIST-SP-800-56C}} or {{NIST-SP-800-135}}?
-
-# Candidate instantiations {#candidate}
-
-In this section, we describe two candidate instantiations of hybrid key exchange in TLS 1.3, based on the design considerations framework above.  It is not our intention that both of these instantations be standardized; we are providing two for discussion and for comparing and contrasting the two approaches.
-
-## Candidate Instantiation 1 {#candidate-1}
-
-Candidate Instantiation 1 allows for two or more component algorithms to be combined [(Num-2+)](#num-2-plus), and negotiates the combination using markers in the `NamedGroup` list as pointers to an extension listing the algorithms comprising each possible combination [(Neg-Comb-2)](#neg-comb-2) following the approach of {{WHYTE13}}.  The client conveys its multiple key shares individually in the `client_shares` vector of the `ClientHello` `key_share` extension [(Shares-Multiple)](#shares-multiple).  The server conveys its multiple key shares concatenated together in its `KeyShareServerHello` struct [(Shares-Concat)](#shares-concat).  The shared secrets are combined by concatenating them then feeding them through a KDF, then feeding the result into the TLS 1.3 key schedule [(Comb-KDF-2)](#comb-kdf-2).
-
-### ClientHello extension supported_groups
-
-Following {{WHYTE13}} section 3.1, the `NamedGroup` enum used by the client to populate the `supported_groups` extension is extended to include new code points representing markers for hybrid combinations:
-
-     enum {
-         /* existing named groups */
-         secp256r1 (23), 
-         ...,
-         
-         /* new code points eventually defined for post-quantum algorithms */
-         ...,
-
-         /* new code points reserved for hybrid markers */
-         hybrid_marker00 (0xFD00),
-         hybrid_marker01 (0xFD01),
-         ...
-         hybrid_markerFF (0xFDFF),
-
-         /* existing reserved code points */
-         ffdhe_private_use (0x01FC..0x01FF),
-         ecdhe_private_use (0xFE00..0xFEFF),
-         (0xFFFF)
-      } NamedGroup;
-
-`hybrid_marker` code points do not a priori represent any fixed combination.  Instead, during each session establishment, the client defines what it wants each `hybrid_marker` code point to represent using the following extension.
-
-### ClientHello extension hybrid_extension
-
-Following {{WHYTE13}} section 3.2.4, a new `ClientHello` `hybrid_extension` extension is defined.  It is defined as follows:
-
-    struct {
-        NamedGroup hybrid_marker;
-        NamedGroup components<2..10>;
-    } HybridMapping;
-    
-    struct {
-        HybridMapping map<0..255>;
-    } HybridExtension;
-
-The `HybridExtension` contains 0 or more `HybridMapping`s.  Each `HybridMapping` corresponds to one of the `hybrid_marker` included in the `supported_groups` extension, and lists the component algorithms that are meant to comprise the this hybrid combination, which can be any of the existing named groups (elliptic curve or finite field), new code points eventually defined for post-quantum algorithms, or reserved code points for private use.
-
-### ClientHello extension key_share
-
-No syntactical modifications are made to the `KeyShareEntry` or `KeyShareClientHello` data structures.  
-
-Semantically, the client does not send a `KeyShareEntry` corresponding to any of the `hybrid_marker` code points.  Instead, the client sends `KeyShareEntry` for each of the component algorithms listed in the `HybridMapping`s.
-
-For example, if the list of `supported_groups` is `secp256r1`, `x25519`, `hybrid_marker00`, and `hybrid_marker01`, where `hybrid_marker00` comprises `secp256r1` with a fictional post-quantum algorithm `PQ1`, and `hybrid_marker01` comprises `x25519` with `PQ1`, then the client could send three `KeyShareEntry` components: one for `secp256r1`, one for `x25519`, and one for `PQ1`.
-
-### ServerHello extension KeyShareServerHello
-
-The server responds with a `KeyShareServerHello` struct containing a single `KeyShareEntry`, which contains a single `NamedGroup` value and an opaque `key_exchange` string.  
-
-To complete the negotiation of a hybrid algorithm, the server responds with the `NamedGroup` value being the `hybrid_marker` code point correspond to the combination that the server was willing to agree to.
-
-The `key_exchange` string is the octet representation of the following struct:
-
-    struct {
-        KeyShareEntry key_share<2..10>;
-    } HybridKeyShare;
-
-where there is one `key_share` entry for each of the components of this hybrid combination.
-
-Note that the `key_exchange` string has a maximum length of 2^16-1 octets, which may be insufficient for some post-quantum algorithms or for some hybridizations of multiple post-quantum algorithms.  It remains an open question as to whether this length can be increased without breaking existing TLS 1.3 implementations.
-
-### Key schedule
-
-The component algorithm shared secrets are combined by concatenating them, then applying a key derivation function, the output of which is then used in the TLS 1.3 key schedule in place of the (EC)DHE shared secret.  The component shared secrets are concatenated in the order that they appear in the `components` vector of the `HybridMapping` extension above.
-
-We provide two options for concatenating the shared secrets, and would like feedback from the working group in which to proceed with.
-
-Each component algorithm's `shared_secret` is defined by the algorithm itself, for example the DHE or ECDHE shared secrets as defined in Section 7.4 of {{ TLS13 }}, or as defined by post-quantum methods once standardized in their own documents.
-
-**Option 1: Using data structures.**  Option 1 uses a full-fledged TLS 1.3 data structure to represent the list of component shared secrets.  As a result, lengths of each shared secret are unambiguously encoded.
-
-    struct SharedSecret {
-        opaque shared_secret<0..2^16-1>;
-    }
-
-    struct {
-        SharedSecret component<2..10>;
-    } HybridSharedSecret;
-
-The `concatenated_shared_secret` is then the octet representation of the `HybridSharedSecret ` struct.
-
-**Option 2: Direct concatenation.**  Option 2 directly concatenates the shared secrets.  Option 2 should only be considered if the shared secret for each algorithm is guarantees to be of a fixed length, which would imply that, once the component algorithms are fixed, concatenation is bijective.
-
-    concatenated_shared_secret = shared_secret0 | shared_secret1 | ...
-
-In either option, the `concatenated_shared_secret` octet string is used as the IKM argument of HKDF-Extract, with the zero-length string as the salt argument.  THe output of HKDF-Extract is used as the IKM argument for HKDF-Extract's calculation of the handshake secret, as shown below.
-
-~~~~
-                                    0
-                                    |
-                                    v
-                      PSK ->  HKDF-Extract = Early Secret
-                                    |
-                                    +-----> Derive-Secret(...)
-                                    +-----> Derive-Secret(...)
-                                    +-----> Derive-Secret(...)
-                                    |
-                                   v
-  concatenated     0
-  shared           |
-  secret  -> HKDF-Extract     Derive-Secret(., "derived", "")
-  ^^^^^^           |                |
-                   v                v
-                output -----> HKDF-Extract = Handshake Secret
-                ^^^^^^              |
-                                    +-----> Derive-Secret(...)
-                                    +-----> Derive-Secret(...)
-                                    |
-                                    v
-                              Derive-Secret(., "derived", "")
-                                    |
-                                    v
-                         0 -> HKDF-Extract = Master Secret
-                                    |
-                                    +-----> Derive-Secret(...)
-                                    +-----> Derive-Secret(...)
-                                    +-----> Derive-Secret(...)
-                                    +-----> Derive-Secret(...)
-~~~~
-
-## Candidate Instantiation 2 {#candidate-2}
-
-Candidate Instantiation 2 allows for exactly two component algorithms to be combined [(Num-2)](#num-2), and uses code points standardized for each permissible combination.  The client concatenates its multiple key shares together as a distinct entry in the `client_shares` vector of the `ClientHello` `key_share` extension [(Shares-Concat)](#shares-concat).  The server does the same.  The shared secrets are combined by concatenating them then feeding them through a KDF, then feeding the result into the TLS 1.3 key schedule [(Comb-KDF-2)](#comb-kdf-2).
-
-### ClientHello extension supported_groups
-
-The `NamedGroup` enum used by the client to populate the `supported_groups` extension is extended to include new code points representing each desired combination.
-
-For example,
-
-     enum {
-         /* existing named groups */
-         secp256r1 (23), 
-         x25519 (0x001D),
-         ...,
-         
-         /* new code points eventually defined for post-quantum algorithms */
-         PQ1 (0x????),
-         PQ2 (0x????),
-         ...,
-
-         /* new code points defined for hybrid combinations */
-         secp256r1_PQ1 (0x????),
-         secp256r1_PQ2 (0x????),
-         x25519_PQ1 (0x????),
-         x25519_PQ2 (0x????),
-
-         /* existing reserved code points */
-         ffdhe_private_use (0x01FC..0x01FF),
-         ecdhe_private_use (0xFE00..0xFEFF),
-         (0xFFFF)
-      } NamedGroup;
-
-### ClientHello extension KeyShareClientHello
-
-The client sends a `KeyShareClientHello` struct containing multiple `KeyShareEntry` values, some of which may correspond to some of the hybrid combination code points it listed in the `supported_groups` extension above.  
-
-The `KeyShareEntry` for a hybrid combination code point contains an opaque  `key_exchange` string which is the octet representation of the following struct:
-
-    struct {
-        KeyShareEntry key_share<2..10>;
-    } HybridKeyShare;
-
-where there is one `key_share` entry for each of the components of this hybrid combination.
-
-Note that this approach may result in duplication of key shares being sent; for example, a client wanting to support either the combination `secp256r1_PQ1` or `x25519_PQ1` would send two `PQ1` key shares.
-
-### ServerHello extension KeyShareServerHello
-
-The server responds with a `KeyShareServerHello` struct containing a single `KeyShareEntry`, which contains a single `NamedGroup` value and an opaque `key_exchange` string.  The `key_exchange` string is the octet representation of the `HybridKeyShare` struct defined above.
-
-### Key schedule
-
-The key schedule is computed as in Candidate Instantiation 1 above.
-
-## Comparing Candidate Instantiation 1 and 2
-
-CI2 requires much less change to negotiation routines -- each hybrid combination is just a new key exchange method, and the concatenation of key shares and shared secrets can be handled internally to that method.  This comes at the cost, however, of combinatorial explosion of code points: one code point needs to be standardized for each desired combination.  We have also limited the number of hybrid algorithms to 2 in CI2 to somewhat limit the explosion of code points needing to be defined.  Concatenating client key shares also risks sending duplicate key shares, increasing communication sizes.
-
-CI1 requires more change to negotiation routines, since it introduces new data structures and has an indirect mapping between hybrid combinations and key shares.  Benefits from this approach include avoiding sending duplicate key shares and not needing to standardize every possible supported combination.  Implementers, however, must do the work of deciding which combinations of algorithms are meaningful / tolerable / desirable from a security perspective, potentially complicating interoperability.
-
-# IANA Considerations
-
-If Candidate Instantiation 1 is selected, the TLS Supported Groups registry will have to be updated to include code points for hybrid markers.
-
-# Security Considerations
-
-The majority of this document is about security considerations.  As noted especially in {{comb}}, the shared secrets computed in the hybrid key exchange should be computed in a way that achieves the "hybrid" property: the resulting secret is secure as long as at least one of the component key exchange algorithms is unbroken.  While many natural approaches seem to achieve this, there can be subtleties (see for example the introduction of {{GIACON}}).
-
-The rest of this section highlights a few unresolved questions related to security.
-
-## Active security
-
-One security consideration that is not yet resolved is whether key encapsulation mechanisms used in TLS 1.3 must be secure against active attacks (IND-CCA), or whether security against passive attacks (IND-CPA) suffices.  Existing security proofs of TLS 1.3 (such as {{DFGS15}}, {{DOWLING}}) are formulated specifically around Diffie--Hellman and use an "actively secure" Diffie--Hellman assumption (PRF Oracle Diffie--Hellman (PRF-ODH)) rather than a "passively secure" DH assumption (e.g. decisional Diffie--Hellman (DDH)), but do not claim that the actively secure notion is required.  In the context of TLS 1.2, {{KPW13}} show that, at least in one formalization, a passively secure assumption like DDH is insufficient (even when signatures are used for mutual authentication).  Resolving this issue for TLS 1.3 is an open question.
-
-## Resumption
-
-TLS 1.3 allows for session resumption via a pre-shared key.  When a pre-shared key is used during session establishment, an ephemeral key exchange can also be used to enhance forward secrecy.  If the original key exchange was hybrid, should an ephemeral key exchange in a resumption of that original key exchange be required to use the same hybrid algorithms?
-
-## Failures
-
-Some post-quantum key exchange algorithms have non-trivial failure rates: two honest parties may fail to agree on the same shared secret with non-negligible probability.  Does a non-negligible failure rate affect the security of TLS?  How should such a failure be treated operationally?  What is an acceptable failure rate?
-
-# Acknowledgements
-
-These ideas have grown from discussions with many colleagues, including Christopher Wood, Matt Campagna, and authors of the various hybrid Internet-Drafts and implementations cited in this document.  The immediate impetus for this document came from discussions with attendees at the Workshop on Post-Quantum Software in Mountain View, California, in January 2019.
-
-Martin Thomson suggested the [(Comb-KDF-1)](#comb-kdf-1) approach.
-
---- back
