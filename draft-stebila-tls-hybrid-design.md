@@ -2,7 +2,7 @@
 title: Hybrid key exchange in TLS 1.3
 abbrev: stebila-tls-hybrid-design
 docname: draft-stebila-tls-hybrid-design-latest
-date: 2020-01-21
+date: 2020-01-23
 category: info
 
 ipr: trust200902
@@ -181,7 +181,7 @@ As such, there may be users for whom hybrid key exchange is an appropriate step 
 
 This document focuses on hybrid ephemeral key exchange in TLS 1.3 {{TLS13}}.  It intentionally does not address:
 
-- Selecting which next-generation algorithms to use in TLS 1.3, nor algorithm identifiers nor encoding mechanisms for next-generation algorithms.  (The outcomes of the NIST Post-Quantum Cryptography Standardization Project {{NIST}} will inform this choice.)
+- Selecting which next-generation algorithms to use in TLS 1.3, nor algorithm identifiers nor encoding mechanisms for next-generation algorithms.  This selection will be based on the recommendations by the Crypto Forum Research Group (CFRG), which is currently waiting for the results of the NIST Post-Quantum Cryptography Standardization Project {{NIST}}.
 - Authentication using next-generation algorithms.  (If a cryptographic assumption is broken due to the advent of a quantum computer or some other cryptanalytic breakthrough, confidentiality of information can be broken retroactively by any adversary who has passively recorded handshakes and encrypted communications.  But session authentication cannot be retroactively broken.)
 
 ## Goals {#goals}
