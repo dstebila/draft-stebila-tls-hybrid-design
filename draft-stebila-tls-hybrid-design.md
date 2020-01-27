@@ -2,7 +2,7 @@
 title: Hybrid key exchange in TLS 1.3
 abbrev: stebila-tls-hybrid-design
 docname: draft-stebila-tls-hybrid-design-latest
-date: 2020-01-23
+date: 2020-01-27
 category: info
 
 ipr: trust200902
@@ -169,11 +169,11 @@ Note that TLS 1.3 uses the phrase "groups" to refer to key exchange algorithms -
 
 ## Motivation for use of hybrid key exchange {#motivation}
 
+A hybrid key exchange algorithm allows early adopters eager for post-quantum security to have the potential of post-quantum security (possibly from a less-well-studied algorithm) while still retaining at least the security currently offered by traditional algorithms.  They may even need to retain traditional algorithms due to regulatory constraints, for example FIPS compliance.
+
 Ideally, one would not use hybrid key exchange: one would have confidence in a single algorithm and parameterization that will stand the test of time.  However, this may not be the case in the face of quantum computers and cryptanalytic advances more generally.  
 
 Many (though not all) post-quantum algorithms currently under consideration are relatively new; they have not been subject to the same depth of study as RSA and finite-field or elliptic curve Diffie--Hellman, and thus the security community does not necessarily have as much confidence in their fundamental security, or the concrete security level of specific parameterizations.  
-
-Early adopters eager for post-quantum security may want to use hybrid key exchange to have the potential of post-quantum security from a less-well-studied algorithm while still retaining at least the security currently offered by traditional algorithms.  They may even need to retain traditional algorithms due to regulatory constraints, for example FIPS compliance.
 
 Moreover, it is possible that even by the end of the NIST Post-Quantum Cryptography Standardization Project, and for a period of time thereafter, conservative users may not have full confidence in some algorithms.
 
