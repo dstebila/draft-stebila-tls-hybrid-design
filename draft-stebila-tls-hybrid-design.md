@@ -228,7 +228,7 @@ Key exchange in TLS 1.3 is phrased in terms of Diffie--Hellman key exchange in a
 
 Each particular combination of algorithms in a hybrid key exchange will be represented as a `NamedGroup` and sent in the `supported_groups` extension.  No internal structure or grammar is implied or required in the value of the identifier; they are simply opaque identifiers.
 
-Each value representing a hybrid key exchange will correspond to an ordered pair of two groups otherwise listed in the `NamedGroup` enum.  For example, suppose a future document specified a `NamedGroup` identifier for the post-quantum KEM ntruhrss701; that document could also specify that hybrid value 0x2000 corresponds to secp256r1+ntruhrss701, and 0x2001 corresponds to x25519+ntruhrss701.
+Each value representing a hybrid key exchange will correspond to an ordered pair of two groups otherwise listed in the `NamedGroup` enum.  For example, a future document could specify that hybrid value 0x2000 corresponds to secp256r1+ntruhrss701, and 0x2001 corresponds to x25519+ntruhrss701.  (We note that this is independent from future documents standardizing solely post-quantum key exchange methods, which would have to be assigned their own identifier.)
 
 Specific values shall be standardized by IANA in the TLS Supported Groups registry.  We suggest that values 0x2000 through 0x2EFF are suitable for hybrid key exchange methods (the leading "2" suggesting that there are 2 algorithms), noting that 0x2A2A is reserved as a GREASE value {{GREASE}}.  This document requests that values 0x2F00 through 0x2FFF be reserved for Private Use for hybrid key exchange.
 
@@ -292,7 +292,7 @@ For a hybrid key exchange, the `key_exchange` field of a `KeyShareEntry` is the 
 
 The order of shares in the `HybridKeyExchange` struct is the same as the order of algorithms indicated in the definition of the `NamedGroup`.
 
-For the client's share, the `key_exchange_1` and `key_exchange_2` values are the `pk` outputs of the corresponding KEMs' `KeyGen` algorithms.  For the server's share, the `key_exchange_1` and `key_exchange_2` values are the `ct` outputs of the corresponding KEMs' `Encaps` algorithms.
+For the client's share, the `key_exchange_1` and `key_exchange_2` values are the `pk` outputs of the corresponding KEMs' `KeyGen` algorithms, if that algorithm corresponds to a KEM; or the (EC)DH ephemeral key share, if that algorithm corresponds to an (EC)DH group.  For the server's share, the `key_exchange_1` and `key_exchange_2` values are the `ct` outputs of the corresponding KEMs' `Encaps` algorithms, if that algorithm corresponds to a KEM; or the (EC)DH ephemeral key share, if that algorithm corresponds to an (EC)DH group.
 
 ## Shared secret calculation {#construction-shared-secret}
 
@@ -376,7 +376,7 @@ The shared secrets computed in the hybrid key exchange should be computed in a w
 
 # Acknowledgements
 
-These ideas have grown from discussions with many colleagues, including Christopher Wood, Matt Campagna, authors of the various hybrid Internet-Drafts and implementations cited in this document, and members of the TLS working group.  The immediate impetus for this document came from discussions with attendees at the Workshop on Post-Quantum Software in Mountain View, California, in January 2019.  Martin Thomson suggested the [(Comb-KDF-1)](#comb-kdf-1) approach.
+These ideas have grown from discussions with many colleagues, including Christopher Wood, Matt Campagna, Eric Crockett, authors of the various hybrid Internet-Drafts and implementations cited in this document, and members of the TLS working group.  The immediate impetus for this document came from discussions with attendees at the Workshop on Post-Quantum Software in Mountain View, California, in January 2019.  Martin Thomson suggested the [(Comb-KDF-1)](#comb-kdf-1) approach.
 
 --- back
 
