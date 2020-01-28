@@ -598,7 +598,7 @@ ul.toc li {
 <a href="#rfc.section.3.1">3.1.</a> <a href="#construction-negotiation" id="construction-negotiation">Negotiation</a>
 </h1>
 <p id="rfc.section.3.1.p.1">Each particular combination of algorithms in a hybrid key exchange will be represented as a <samp>NamedGroup</samp> and sent in the <samp>supported_groups</samp> extension.  No internal structure or grammar is implied or required in the value of the identifier; they are simply opaque identifiers.</p>
-<p id="rfc.section.3.1.p.2">Each value representing a hybrid key exchange will correspond to an ordered pair of two groups otherwise listed in the <samp>NamedGroup</samp> enum.  For example, suppose a future document specified a <samp>NamedGroup</samp> identifier for the post-quantum KEM ntruhrss701; that document could also specify that hybrid value 0x2000 corresponds to secp256r1+ntruhrss701, and 0x2001 corresponds to x25519+ntruhrss701.</p>
+<p id="rfc.section.3.1.p.2">Each value representing a hybrid key exchange will correspond to an ordered pair of two groups otherwise listed in the <samp>NamedGroup</samp> enum.  For example, a future document could specify that hybrid value 0x2000 corresponds to secp256r1+ntruhrss701, and 0x2001 corresponds to x25519+ntruhrss701.  (We note that this is independent from future documents standardizing solely post-quantum key exchange methods, which would have to be assigned their own identifier.)</p>
 <p id="rfc.section.3.1.p.3">Specific values shall be standardized by IANA in the TLS Supported Groups registry.  We suggest that values 0x2000 through 0x2EFF are suitable for hybrid key exchange methods (the leading &#8220;2&#8221; suggesting that there are 2 algorithms), noting that 0x2A2A is reserved as a GREASE value <a href="#GREASE" class="xref">[GREASE]</a>.  This document requests that values 0x2F00 through 0x2FFF be reserved for Private Use for hybrid key exchange.</p>
 <pre>
     enum {
@@ -651,7 +651,7 @@ ul.toc li {
     } HybridKeyExchange
 </pre>
 <p id="rfc.section.3.2.p.6">The order of shares in the <samp>HybridKeyExchange</samp> struct is the same as the order of algorithms indicated in the definition of the <samp>NamedGroup</samp>.</p>
-<p id="rfc.section.3.2.p.7">For the client&#8217;s share, the <samp>key_exchange_1</samp> and <samp>key_exchange_2</samp> values are the <samp>pk</samp> outputs of the corresponding KEMs&#8217; <samp>KeyGen</samp> algorithms.  For the server&#8217;s share, the <samp>key_exchange_1</samp> and <samp>key_exchange_2</samp> values are the <samp>ct</samp> outputs of the corresponding KEMs&#8217; <samp>Encaps</samp> algorithms.</p>
+<p id="rfc.section.3.2.p.7">For the client&#8217;s share, the <samp>key_exchange_1</samp> and <samp>key_exchange_2</samp> values are the <samp>pk</samp> outputs of the corresponding KEMs&#8217; <samp>KeyGen</samp> algorithms, if that algorithm corresponds to a KEM; or the (EC)DH ephemeral key share, if that algorithm corresponds to an (EC)DH group.  For the server&#8217;s share, the <samp>key_exchange_1</samp> and <samp>key_exchange_2</samp> values are the <samp>ct</samp> outputs of the corresponding KEMs&#8217; <samp>Encaps</samp> algorithms, if that algorithm corresponds to a KEM; or the (EC)DH ephemeral key share, if that algorithm corresponds to an (EC)DH group.</p>
 <h1 id="rfc.section.3.3">
 <a href="#rfc.section.3.3">3.3.</a> <a href="#construction-shared-secret" id="construction-shared-secret">Shared secret calculation</a>
 </h1>
@@ -715,7 +715,7 @@ concatenated_shared_secret -&gt; HKDF-Extract = Handshake Secret
 <h1 id="rfc.section.7">
 <a href="#rfc.section.7">7.</a> <a href="#acknowledgements" id="acknowledgements">Acknowledgements</a>
 </h1>
-<p id="rfc.section.7.p.1">These ideas have grown from discussions with many colleagues, including Christopher Wood, Matt Campagna, authors of the various hybrid Internet-Drafts and implementations cited in this document, and members of the TLS working group.  The immediate impetus for this document came from discussions with attendees at the Workshop on Post-Quantum Software in Mountain View, California, in January 2019.  Martin Thomson suggested the <a href="#comb-kdf-1" class="xref">(Comb-KDF-1)</a> approach.</p>
+<p id="rfc.section.7.p.1">These ideas have grown from discussions with many colleagues, including Christopher Wood, Matt Campagna, Eric Crockett, authors of the various hybrid Internet-Drafts and implementations cited in this document, and members of the TLS working group.  The immediate impetus for this document came from discussions with attendees at the Workshop on Post-Quantum Software in Mountain View, California, in January 2019.  Martin Thomson suggested the <a href="#comb-kdf-1" class="xref">(Comb-KDF-1)</a> approach.</p>
 <h1 id="rfc.references">
 <a href="#rfc.references">8.</a> References</h1>
 <h1 id="rfc.references.1">
