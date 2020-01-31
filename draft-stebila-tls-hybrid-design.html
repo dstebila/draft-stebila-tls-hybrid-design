@@ -332,7 +332,7 @@ ul.toc li {
 
   <meta name="dct.creator" content="Stebila, D., Fluhrer, S., and S. Gueron" />
   <meta name="dct.identifier" content="urn:ietf:id:draft-stebila-tls-hybrid-design-latest" />
-  <meta name="dct.issued" scheme="ISO8601" content="2020-01-27" />
+  <meta name="dct.issued" scheme="ISO8601" content="2020-01-31" />
   <meta name="dct.abstract" content="Hybrid key exchange refers to using multiple key exchange algorithms simultaneously and combining the result with the goal of providing security even if all but one of the component algorithms is broken.  It is motivated by transition to post-quantum cryptography.  This document provides a construction for hybrid key exchange in the Transport Layer Security (TLS) protocol version 1.3.Discussion of this work is encouraged to happen on the TLS IETF mailing list tls@ietf.org or on the GitHub repository which contains the draft: https://github.com/dstebila/draft-stebila-tls-hybrid-design." />
   <meta name="description" content="Hybrid key exchange refers to using multiple key exchange algorithms simultaneously and combining the result with the goal of providing security even if all but one of the component algorithms is broken.  It is motivated by transition to post-quantum cryptography.  This document provides a construction for hybrid key exchange in the Transport Layer Security (TLS) protocol version 1.3.Discussion of this work is encouraged to happen on the TLS IETF mailing list tls@ietf.org or on the GitHub repository which contains the draft: https://github.com/dstebila/draft-stebila-tls-hybrid-design." />
 
@@ -356,7 +356,7 @@ ul.toc li {
 <td class="right">S. Fluhrer</td>
 </tr>
 <tr>
-<td class="left">Expires: July 30, 2020</td>
+<td class="left">Expires: August 3, 2020</td>
 <td class="right">Cisco Systems</td>
 </tr>
 <tr>
@@ -369,7 +369,7 @@ ul.toc li {
 </tr>
 <tr>
 <td class="left"></td>
-<td class="right">January 27, 2020</td>
+<td class="right">January 31, 2020</td>
 </tr>
 
     	
@@ -386,7 +386,7 @@ ul.toc li {
 <p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
 <p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at https://datatracker.ietf.org/drafts/current/.</p>
 <p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
-<p>This Internet-Draft will expire on July 30, 2020.</p>
+<p>This Internet-Draft will expire on August 3, 2020.</p>
 <h1 id="rfc.copyrightnotice"><a href="#rfc.copyrightnotice">Copyright Notice</a></h1>
 <p>Copyright (c) 2020 IETF Trust and the persons identified as the document authors.  All rights reserved.</p>
 <p>This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents (https://trustee.ietf.org/license-info) in effect on the date of publication of this document.  Please review these documents carefully, as they describe your rights and restrictions with respect to this document.  Code Components extracted from this document must include Simplified BSD License text as described in Section 4.e of the Trust Legal Provisions and are provided without warranty as described in the Simplified BSD License.</p>
@@ -699,7 +699,14 @@ concatenated_shared_secret -&gt; HKDF-Extract = Handshake Secret
 <p><strong>Duplication of key shares.</strong> Concatenation of public keys in the <samp>HybridKeyExchange</samp> struct as described in <a href="#construction-transmitting" class="xref">Section 3.2</a> can result in sending duplicate key shares.  For example, if a client wanted to offer support for two combinations, say &#8220;secp256r1+sikep503&#8221; and &#8220;x25519+sikep503&#8221;, it would end up sending two sikep503 public keys, since the <samp>KeyShareEntry</samp> for each combination contains its own copy of a sikep503 key.  This duplication may be more problematic for post-quantum algorithms which have larger public keys.</p>
 <p id="rfc.section.4.p.4">If it is desired to avoid duplication of key shares, options include a) disconnect the use of a combination for the algorithm identifier from the use of concatenation of public keys by introducing new logic and/or data structures (see <a href="#shares-multiple" class="xref">Appendix B.3.2</a> or <a href="#shares-ext-additional" class="xref">Appendix B.3.3</a>); or b) provide some back reference from a later key share entry to an earlier one.</p>
 <p><strong>Variable-length shared secrets.</strong> The shared secret calculation in <a href="#construction-shared-secret" class="xref">Section 3.3</a> directly concatenates the shared secret values of each scheme, rather than encoding them with length fields.  This implicitly assumes that the length of each shared secret is fixed once the algorithm is fixed.  This is the case for all Round 2 candidates.</p>
-<p id="rfc.section.4.p.6">However, if it is envisioned that this specification be used with algorithms which do not have fixed-length shared secrets (after the variant has been fixed by the algorithm identifier in the <samp>NamedGroup</samp> negotiation in <a href="#construction-negotiation" class="xref">Section 3.1</a>), then <a href="#construction-shared-secret" class="xref">Section 3.3</a> should be revised to use an unambiguous concatenation method similar to the one used in <a href="#construction-transmitting" class="xref">Section 3.2</a>.</p>
+<p id="rfc.section.4.p.6">However, if it is envisioned that this specification be used with algorithms which do not have fixed-length shared secrets (after the variant has been fixed by the algorithm identifier in the <samp>NamedGroup</samp> negotiation in <a href="#construction-negotiation" class="xref">Section 3.1</a>), then <a href="#construction-shared-secret" class="xref">Section 3.3</a> should be revised to use an unambiguous concatenation method such as the following:</p>
+<pre>
+    struct {
+        opaque shared_secret_1&lt;1..2^16-1&gt;;
+        opaque shared_secret_2&lt;1..2^16-1&gt;;
+    } HybridSharedSecret
+</pre>
+<p id="rfc.section.4.p.7">Guidance from the working group is particularly requested on this point.</p>
 <p><strong>FIPS-compliance of shared secret concatenation.</strong> <a href="#NIST-SP-800-56C" class="xref">[NIST-SP-800-56C]</a> or <a href="#NIST-SP-800-135" class="xref">[NIST-SP-800-135]</a> give NIST recommendations for key derivation methods in key exchange protocols.  Some hybrid combinations in this document may combine the shared secret from a NIST-approved algorithm (e.g., ECDH using the nistp256/secp256r1 curve) with a shared secret from a non-approved algorithm (e.g., post-quantum).  Prior to advancement of this draft, guidance should be obtained from NIST on whether the combination method stated in <a href="#construction-shared-secret" class="xref">Section 3.3</a> results in a method that gives a final shared secret that is acceptable under either <a href="#NIST-SP-800-56C" class="xref">[NIST-SP-800-56C]</a> or <a href="#NIST-SP-800-135" class="xref">[NIST-SP-800-135]</a>.</p>
 <p><strong>IND-CPA versus IND-CCA security.</strong> One security consideration that is not yet resolved is whether key encapsulation mechanisms used in TLS 1.3 must be secure against active attacks (IND-CCA), or whether security against passive attacks (IND-CPA) suffices.  Existing security proofs of TLS 1.3 (such as <a href="#DFGS15" class="xref">[DFGS15]</a>, <a href="#DOWLING" class="xref">[DOWLING]</a>) are formulated specifically around Diffie&#8211;Hellman and use an &#8220;actively secure&#8221; Diffie&#8211;Hellman assumption (PRF Oracle Diffie&#8211;Hellman (PRF-ODH)) rather than a &#8220;passively secure&#8221; DH assumption (e.g. decisional Diffie&#8211;Hellman (DDH)), but do not claim that the actively secure notion is required.  In the context of TLS 1.2, <a href="#KPW13" class="xref">[KPW13]</a> show that, at least in one formalization, a passively secure assumption like DDH is insufficient (even when signatures are used for mutual authentication).  Resolving this issue for TLS 1.3 is an open question.</p>
 <p><strong>Resumption.</strong> TLS 1.3 allows for session resumption via a PSK.  When a PSK is used during session establishment, an ephemeral key exchange can also be used to enhance forward secrecy.  If the original key exchange was hybrid, should an ephemeral key exchange in a resumption of that original key exchange be required to use the same hybrid algorithms?</p>
