@@ -2,7 +2,7 @@
 title: Hybrid key exchange in TLS 1.3
 abbrev: stebila-tls-hybrid-design
 docname: draft-stebila-tls-hybrid-design-latest
-date: 2020-01-27
+date: 2020-01-31
 category: info
 
 ipr: trust200902
@@ -352,7 +352,16 @@ If it is desired to avoid duplication of key shares, options include a) disconne
 **Variable-length shared secrets.**
 The shared secret calculation in {{construction-shared-secret}} directly concatenates the shared secret values of each scheme, rather than encoding them with length fields.  This implicitly assumes that the length of each shared secret is fixed once the algorithm is fixed.  This is the case for all Round 2 candidates.
 
-However, if it is envisioned that this specification be used with algorithms which do not have fixed-length shared secrets (after the variant has been fixed by the algorithm identifier in the `NamedGroup` negotiation in {{construction-negotiation}}), then {{construction-shared-secret}} should be revised to use an unambiguous concatenation method similar to the one used in {{construction-transmitting}}.
+However, if it is envisioned that this specification be used with algorithms which do not have fixed-length shared secrets (after the variant has been fixed by the algorithm identifier in the `NamedGroup` negotiation in {{construction-negotiation}}), then {{construction-shared-secret}} should be revised to use an unambiguous concatenation method such as the following:
+
+~~~
+    struct {
+        opaque shared_secret_1<1..2^16-1>;
+        opaque shared_secret_2<1..2^16-1>;
+    } HybridSharedSecret
+~~~
+
+Guidance from the working group is particularly requested on this point.
 
 **FIPS-compliance of shared secret concatenation.**
 {{NIST-SP-800-56C}} or {{NIST-SP-800-135}} give NIST recommendations for key derivation methods in key exchange protocols.  Some hybrid combinations in this document may combine the shared secret from a NIST-approved algorithm (e.g., ECDH using the nistp256/secp256r1 curve) with a shared secret from a non-approved algorithm (e.g., post-quantum).  Prior to advancement of this draft, guidance should be obtained from NIST on whether the combination method stated in {{construction-shared-secret}} results in a method that gives a final shared secret that is acceptable under either {{NIST-SP-800-56C}} or {{NIST-SP-800-135}}.
