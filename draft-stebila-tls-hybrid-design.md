@@ -66,11 +66,21 @@ informative:
     date: 2015-06
   EVEN: DOI.10.1007/978-1-4684-4730-9_4
   EXTERN-PSK: I-D.ietf-tls-tls13-cert-with-extern-psk
+  FLUHRER:
+    target: https://eprint.iacr.org/2016/085
+    title: "Cryptanalysis of ring-LWE based key exchange with key share reuse"
+    author:
+      -
+        ins: S. Fluhrer
+    seriesinfo: Cryptology ePrint Archive, Report 2016/085
+    date: 2016-01
+  FO: DOI.10.1007/s00145-011-9114-1
   FRODO: DOI.10.1145/2976749.2978425
   GIACON: DOI.10.1007/978-3-319-76578-5_7
   GREASE: I-D.ietf-tls-grease
   HARNIK: DOI.10.1007/11426639_6
   HOFFMAN: I-D.hoffman-c2pq
+  HHK: DOI.10.1007/978-3-319-70500-2_12
   IKE-HYBRID: I-D.tjhai-ipsecme-hybrid-qske-ikev2
   IKE-PSK: I-D.ietf-ipsecme-qr-ikev2
   KIEFER: I-D.kiefer-tls-ecdhe-sidh
@@ -153,6 +163,7 @@ This document does not propose specific post-quantum mechanisms; see {{scope}} f
 Earlier versions of this document categorized various design decisions one could make when implementing hybrid key exchange in TLS 1.3.  These have been moved to the appendix of the current draft, and will be eventually be removed.
 
 - draft-03:
+    - Add requirement for KEMs to provide protection against key reuse.
     - Clarify FIPS-compliance of shared secret concatenation method.
 - draft-02:
     - Design considerations from draft-00 and draft-01 are moved to the appendix.
@@ -218,7 +229,7 @@ In addition to the primary cryptographic goal, there may be several additional g
 
 - **Minimal duplicate information:** Attempting to negotiate hybrid key exchange should not mean having to send multiple public keys of the same type.
 
-# Key encapsulation mechanisms
+# Key encapsulation mechanisms {#kems}
 
 In the context of the NIST Post-Quantum Cryptography Standardization Project, key exchange algorithms are formulated as key encapsulation mechanisms (KEMs), which consist of three algorithms:
 
@@ -226,9 +237,13 @@ In the context of the NIST Post-Quantum Cryptography Standardization Project, ke
 - `Encaps(pk) -> (ct, ss)`: A probabilistic encapsulation algorithm, which takes as input a public key `pk` and outputs a ciphertext `ct` and shared secret `ss`.
 - `Decaps(sk, ct) -> ss`: A decapsulation algorithm, which takes as input a secret key `sk` and ciphertext `ct` and outputs a shared secret `ss`, or in some cases a distinguished error value.
 
-The main security property for KEMs is indistinguishability under adaptive chosen ciphertext attack (IND-CCA2), which means that shared secret values should be indistinguishable from random strings even given the ability to have arbitrary ciphertexts decapsulated.  IND-CCA2 corresponds to security against an active attacker, and the public key / secret key pair can be treated as a long-term key or reused.  A weaker security notion is indistinguishability under chosen plaintext attack (IND-CPA), which means that the shared secret values should be indistinguishable from random strings given a copy of the public key.  IND-CPA roughly corresponds to security against a passive attacker, and sometimes corresponds to ephemeral key exchange.
+The main security property for KEMs is indistinguishability under adaptive chosen ciphertext attack (IND-CCA2), which means that shared secret values should be indistinguishable from random strings even given the ability to have arbitrary ciphertexts decapsulated.  IND-CCA2 corresponds to security against an active attacker, and the public key / secret key pair can be treated as a long-term key or reused.  A common design pattern for obtaining security under key reuse is to apply the Fujisaki--Okamoto (FO) transform {{FO}} or a variant thereof {{HHK}}.  
+
+A weaker security notion is indistinguishability under chosen plaintext attack (IND-CPA), which means that the shared secret values should be indistinguishable from random strings given a copy of the public key.  IND-CPA roughly corresponds to security against a passive attacker, and sometimes corresponds to one-time key exchange.
 
 Key exchange in TLS 1.3 is phrased in terms of Diffie--Hellman key exchange in a group.  DH key exchange can be modeled as a KEM, with `KeyGen` corresponding to selecting an exponent `x` as the secret key and computing the public key `g^x`; encapsulation corresponding to selecting an exponent `y`, computing the ciphertext `g^y` and the shared secret `g^(xy)`, and decapsulation as computing the shared secret `g^(xy)`. See {{?I-D.irtf-cfrg-hpke}} for more details of such Diffie--Hellman-based key encapsulation mechanisms.
+
+TLS 1.3 does not require that ephemeral public keys be used only in a single key exchange session; some implementations may reuse them, at the cost of limited forward secrecy.  As a result, any KEM used in this document MUST explicitly be designed to be secure in the event that the public key is re-used, such as achieving IND-CCA2 security or having a transform like the Fujisaki--Okamoto transform {{FO}} {{HHK}} applied.
 
 # Construction for hybrid key exchange {#construction}
 
@@ -374,9 +389,6 @@ However, if it is envisioned that this specification be used with algorithms whi
 
 Guidance from the working group is particularly requested on this point.
 
-**IND-CPA versus IND-CCA security.**
-One security consideration that is not yet resolved is whether key encapsulation mechanisms used in TLS 1.3 must be secure against active attacks (IND-CCA), or whether security against passive attacks (IND-CPA) suffices.  Existing security proofs of TLS 1.3 (such as {{DFGS15}}, {{DOWLING}}) are formulated specifically around Diffie--Hellman and use an "actively secure" Diffie--Hellman assumption (PRF Oracle Diffie--Hellman (PRF-ODH)) rather than a "passively secure" DH assumption (e.g. decisional Diffie--Hellman (DDH)), but do not claim that the actively secure notion is required.  In the context of TLS 1.2, {{KPW13}} show that, at least in one formalization, a passively secure assumption like DDH is insufficient (even when signatures are used for mutual authentication).  Resolving this issue for TLS 1.3 is an open question.
-
 **Resumption.**
 TLS 1.3 allows for session resumption via a PSK.  When a PSK is used during session establishment, an ephemeral key exchange can also be used to enhance forward secrecy.  If the original key exchange was hybrid, should an ephemeral key exchange in a resumption of that original key exchange be required to use the same hybrid algorithms?
 
@@ -391,9 +403,11 @@ Identifiers for specific key exchange algorithm combinations will be defined in 
 
 The shared secrets computed in the hybrid key exchange should be computed in a way that achieves the "hybrid" property: the resulting secret is secure as long as at least one of the component key exchange algorithms is unbroken.  See {{GIACON}} and {{BINDEL}} for an investigation of these issues.  Under the assumption that shared secrets are fixed length once the combination is fixed, the construction from {{construction-shared-secret}} corresponds to the dual-PRF combiner of {{BINDEL}} which is shown to preserve security under the assumption that the hash function is a dual-PRF.
 
+As noted in {{kems}}, KEMs used in this document MUST explicitly be designed to be secure in the event that the public key is re-used, such as achieving IND-CCA2 security or having a transform like the Fujisaki--Okamoto transform applied.  Some IND-CPA-secure post-quantum KEMs (i.e., without countermeasures such as the FO transform) are completely insecure under public key reuse; for example, some lattice-based IND-CPA-secure KEMs are vulnerable to attacks that recover the private key after just a few thousand samples {{FLUHRER}}.
+
 # Acknowledgements
 
-These ideas have grown from discussions with many colleagues, including Christopher Wood, Matt Campagna, Eric Crockett, authors of the various hybrid Internet-Drafts and implementations cited in this document, and members of the TLS working group.  The immediate impetus for this document came from discussions with attendees at the Workshop on Post-Quantum Software in Mountain View, California, in January 2019.  Martin Thomson suggested the [(Comb-KDF-1)](#comb-kdf-1) approach.
+These ideas have grown from discussions with many colleagues, including Christopher Wood, Matt Campagna, Eric Crockett, authors of the various hybrid Internet-Drafts and implementations cited in this document, and members of the TLS working group.  The immediate impetus for this document came from discussions with attendees at the Workshop on Post-Quantum Software in Mountain View, California, in January 2019.  Martin Thomson suggested the [(Comb-KDF-1)](#comb-kdf-1) approach.  Daniel J. Bernstein and Tanja Lange commented on the risks of reuse of ephemeral public keys.
 
 --- back
 
