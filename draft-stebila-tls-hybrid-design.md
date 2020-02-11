@@ -2,7 +2,7 @@
 title: Hybrid key exchange in TLS 1.3
 abbrev: stebila-tls-hybrid-design
 docname: draft-stebila-tls-hybrid-design-latest
-date: 2020-02-04
+date: 2020-02-11
 category: info
 
 ipr: trust200902
@@ -96,6 +96,12 @@ informative:
     title: Post-Quantum Cryptography
     author:
       org: National Institute of Standards and Technology (NIST)
+  NIST-FAQ:
+    target: https://csrc.nist.gov/Projects/post-quantum-cryptography/faqs
+    title: Post-Quantum Cryptography - FAQs
+    author:
+      org: National Institute of Standards and Technology (NIST)
+    date: 2020-01-28
   NIST-SP-800-56C:
     target: https://doi.org/10.6028/NIST.SP.800-56Cr1
     title: Recommendation for Key-Derivation Methods in Key-Establishment Schemes
@@ -146,6 +152,8 @@ This document does not propose specific post-quantum mechanisms; see {{scope}} f
 
 Earlier versions of this document categorized various design decisions one could make when implementing hybrid key exchange in TLS 1.3.  These have been moved to the appendix of the current draft, and will be eventually be removed.
 
+- draft-03:
+    - Clarify FIPS-compliance of shared secret concatenation method.
 - draft-02:
     - Design considerations from draft-00 and draft-01 are moved to the appendix.
     - A single construction is given in the main body.
@@ -337,6 +345,9 @@ concatenated_shared_secret -> HKDF-Extract = Handshake Secret
                                     +-----> Derive-Secret(...)
 ~~~~
 
+**FIPS-compliance of shared secret concatenation.**
+{{NIST-SP-800-56C}} or {{NIST-SP-800-135}} give NIST recommendations for key derivation methods in key exchange protocols.  Some hybrid combinations may combine the shared secret from a NIST-approved algorithm (e.g., ECDH using the nistp256/secp256r1 curve) with a shared secret from a non-approved algorithm (e.g., post-quantum).  Although the simple concatenation approach above is not currently an approved method in {{NIST-SP-800-56C}} or {{NIST-SP-800-135}}, NIST indicated in January 2020 that a forthcoming revision of {{NIST-SP-800-56C}} will list simple concatenation as an approved method {{NIST-FAQ}}.
+
 # Open questions {#comb-open-questions}
 
 **Larger public keys and/or ciphertexts.**
@@ -362,9 +373,6 @@ However, if it is envisioned that this specification be used with algorithms whi
 ~~~
 
 Guidance from the working group is particularly requested on this point.
-
-**FIPS-compliance of shared secret concatenation.**
-{{NIST-SP-800-56C}} or {{NIST-SP-800-135}} give NIST recommendations for key derivation methods in key exchange protocols.  Some hybrid combinations in this document may combine the shared secret from a NIST-approved algorithm (e.g., ECDH using the nistp256/secp256r1 curve) with a shared secret from a non-approved algorithm (e.g., post-quantum).  Prior to advancement of this draft, guidance should be obtained from NIST on whether the combination method stated in {{construction-shared-secret}} results in a method that gives a final shared secret that is acceptable under either {{NIST-SP-800-56C}} or {{NIST-SP-800-135}}.
 
 **IND-CPA versus IND-CCA security.**
 One security consideration that is not yet resolved is whether key encapsulation mechanisms used in TLS 1.3 must be secure against active attacks (IND-CCA), or whether security against passive attacks (IND-CPA) suffices.  Existing security proofs of TLS 1.3 (such as {{DFGS15}}, {{DOWLING}}) are formulated specifically around Diffie--Hellman and use an "actively secure" Diffie--Hellman assumption (PRF Oracle Diffie--Hellman (PRF-ODH)) rather than a "passively secure" DH assumption (e.g. decisional Diffie--Hellman (DDH)), but do not claim that the actively secure notion is required.  In the context of TLS 1.2, {{KPW13}} show that, at least in one formalization, a passively secure assumption like DDH is insufficient (even when signatures are used for mutual authentication).  Resolving this issue for TLS 1.3 is an open question.
