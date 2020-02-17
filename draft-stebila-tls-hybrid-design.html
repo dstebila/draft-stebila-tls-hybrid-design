@@ -331,8 +331,8 @@ ul.toc li {
   <link rel="schema.dct" href="http://purl.org/dc/terms/" />
 
   <meta name="dct.creator" content="Stebila, D., Fluhrer, S., and S. Gueron" />
-  <meta name="dct.identifier" content="urn:ietf:id:draft-stebila-tls-hybrid-design-03" />
-  <meta name="dct.issued" scheme="ISO8601" content="2020-02-12" />
+  <meta name="dct.identifier" content="urn:ietf:id:draft-stebila-tls-hybrid-design-latest" />
+  <meta name="dct.issued" scheme="ISO8601" content="2020-02-17" />
   <meta name="dct.abstract" content="Hybrid key exchange refers to using multiple key exchange algorithms simultaneously and combining the result with the goal of providing security even if all but one of the component algorithms is broken.  It is motivated by transition to post-quantum cryptography.  This document provides a construction for hybrid key exchange in the Transport Layer Security (TLS) protocol version 1.3.Discussion of this work is encouraged to happen on the TLS IETF mailing list tls@ietf.org or on the GitHub repository which contains the draft: https://github.com/dstebila/draft-stebila-tls-hybrid-design." />
   <meta name="description" content="Hybrid key exchange refers to using multiple key exchange algorithms simultaneously and combining the result with the goal of providing security even if all but one of the component algorithms is broken.  It is motivated by transition to post-quantum cryptography.  This document provides a construction for hybrid key exchange in the Transport Layer Security (TLS) protocol version 1.3.Discussion of this work is encouraged to happen on the TLS IETF mailing list tls@ietf.org or on the GitHub repository which contains the draft: https://github.com/dstebila/draft-stebila-tls-hybrid-design." />
 
@@ -356,7 +356,7 @@ ul.toc li {
 <td class="right">S. Fluhrer</td>
 </tr>
 <tr>
-<td class="left">Expires: August 15, 2020</td>
+<td class="left">Expires: August 20, 2020</td>
 <td class="right">Cisco Systems</td>
 </tr>
 <tr>
@@ -369,7 +369,7 @@ ul.toc li {
 </tr>
 <tr>
 <td class="left"></td>
-<td class="right">February 12, 2020</td>
+<td class="right">February 17, 2020</td>
 </tr>
 
     	
@@ -377,7 +377,7 @@ ul.toc li {
   </table>
 
   <p class="title">Hybrid key exchange in TLS 1.3<br />
-  <span class="filename">draft-stebila-tls-hybrid-design-03</span></p>
+  <span class="filename">draft-stebila-tls-hybrid-design-latest</span></p>
   
   <h1 id="rfc.abstract"><a href="#rfc.abstract">Abstract</a></h1>
 <p>Hybrid key exchange refers to using multiple key exchange algorithms simultaneously and combining the result with the goal of providing security even if all but one of the component algorithms is broken.  It is motivated by transition to post-quantum cryptography.  This document provides a construction for hybrid key exchange in the Transport Layer Security (TLS) protocol version 1.3.</p>
@@ -386,7 +386,7 @@ ul.toc li {
 <p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
 <p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at https://datatracker.ietf.org/drafts/current/.</p>
 <p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
-<p>This Internet-Draft will expire on August 15, 2020.</p>
+<p>This Internet-Draft will expire on August 20, 2020.</p>
 <h1 id="rfc.copyrightnotice"><a href="#rfc.copyrightnotice">Copyright Notice</a></h1>
 <p>Copyright (c) 2020 IETF Trust and the persons identified as the document authors.  All rights reserved.</p>
 <p>This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents (https://trustee.ietf.org/license-info) in effect on the date of publication of this document.  Please review these documents carefully, as they describe your rights and restrictions with respect to this document.  Code Components extracted from this document must include Simplified BSD License text as described in Section 4.e of the Trust Legal Provisions and are provided without warranty as described in the Simplified BSD License.</p>
@@ -597,7 +597,7 @@ ul.toc li {
 <p id="rfc.section.2.p.3">The main security property for KEMs is indistinguishability under adaptive chosen ciphertext attack (IND-CCA2), which means that shared secret values should be indistinguishable from random strings even given the ability to have arbitrary ciphertexts decapsulated.  IND-CCA2 corresponds to security against an active attacker, and the public key / secret key pair can be treated as a long-term key or reused.  A common design pattern for obtaining security under key reuse is to apply the Fujisaki&#8211;Okamoto (FO) transform <a href="#FO" class="xref">[FO]</a> or a variant thereof <a href="#HHK" class="xref">[HHK]</a>.</p>
 <p id="rfc.section.2.p.4">A weaker security notion is indistinguishability under chosen plaintext attack (IND-CPA), which means that the shared secret values should be indistinguishable from random strings given a copy of the public key.  IND-CPA roughly corresponds to security against a passive attacker, and sometimes corresponds to one-time key exchange.</p>
 <p id="rfc.section.2.p.5">Key exchange in TLS 1.3 is phrased in terms of Diffie&#8211;Hellman key exchange in a group.  DH key exchange can be modeled as a KEM, with <samp>KeyGen</samp> corresponding to selecting an exponent <samp>x</samp> as the secret key and computing the public key <samp>g^x</samp>; encapsulation corresponding to selecting an exponent <samp>y</samp>, computing the ciphertext <samp>g^y</samp> and the shared secret <samp>g^(xy)</samp>, and decapsulation as computing the shared secret <samp>g^(xy)</samp>. See <a href="#I-D.irtf-cfrg-hpke" class="xref">[I-D.irtf-cfrg-hpke]</a> for more details of such Diffie&#8211;Hellman-based key encapsulation mechanisms.</p>
-<p id="rfc.section.2.p.6">TLS 1.3 does not require that ephemeral public keys be used only in a single key exchange session; some implementations may reuse them, at the cost of limited forward secrecy.  As a result, any KEM used in this document MUST explicitly be designed to be secure in the event that the public key is re-used, such as achieving IND-CCA2 security or having a transform like the Fujisaki&#8211;Okamoto transform <a href="#FO" class="xref">[FO]</a> <a href="#HHK" class="xref">[HHK]</a> applied.  While it is recommended that implementations avoid reuse of KEM public keys, implementations that do reuse KEM public keys MUST ensure that the number of reuses of a KEM public key abides by any bounds in the specification of the KEM or subsequent security analyses.  Implementations MUST NOT reuse randomness in the generation of KEM ciphertexts.</p>
+<p id="rfc.section.2.p.6">TLS 1.3 does not require that ephemeral public keys be used only in a single key exchange session; some implementations may reuse them, at the cost of limited forward secrecy.  As a result, any KEM used in the manner described in this document MUST explicitly be designed to be secure in the event that the public key is re-used, such as achieving IND-CCA2 security or having a transform like the Fujisaki&#8211;Okamoto transform <a href="#FO" class="xref">[FO]</a> <a href="#HHK" class="xref">[HHK]</a> applied.  While it is recommended that implementations avoid reuse of KEM public keys, implementations that do reuse KEM public keys MUST ensure that the number of reuses of a KEM public key abides by any bounds in the specification of the KEM or subsequent security analyses.  Implementations MUST NOT reuse randomness in the generation of KEM ciphertexts.</p>
 <h1 id="rfc.section.3">
 <a href="#rfc.section.3">3.</a> <a href="#construction" id="construction">Construction for hybrid key exchange</a>
 </h1>
@@ -725,7 +725,7 @@ concatenated_shared_secret -&gt; HKDF-Extract = Handshake Secret
 <a href="#rfc.section.6">6.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a>
 </h1>
 <p id="rfc.section.6.p.1">The shared secrets computed in the hybrid key exchange should be computed in a way that achieves the &#8220;hybrid&#8221; property: the resulting secret is secure as long as at least one of the component key exchange algorithms is unbroken.  See <a href="#GIACON" class="xref">[GIACON]</a> and <a href="#BINDEL" class="xref">[BINDEL]</a> for an investigation of these issues.  Under the assumption that shared secrets are fixed length once the combination is fixed, the construction from <a href="#construction-shared-secret" class="xref">Section 3.3</a> corresponds to the dual-PRF combiner of <a href="#BINDEL" class="xref">[BINDEL]</a> which is shown to preserve security under the assumption that the hash function is a dual-PRF.</p>
-<p id="rfc.section.6.p.2">As noted in <a href="#kems" class="xref">Section 2</a>, KEMs used in this document MUST explicitly be designed to be secure in the event that the public key is re-used, such as achieving IND-CCA2 security or having a transform like the Fujisaki&#8211;Okamoto transform applied.  Some IND-CPA-secure post-quantum KEMs (i.e., without countermeasures such as the FO transform) are completely insecure under public key reuse; for example, some lattice-based IND-CPA-secure KEMs are vulnerable to attacks that recover the private key after just a few thousand samples <a href="#FLUHRER" class="xref">[FLUHRER]</a>.</p>
+<p id="rfc.section.6.p.2">As noted in <a href="#kems" class="xref">Section 2</a>, KEMs used in the manner described in this document MUST explicitly be designed to be secure in the event that the public key is re-used, such as achieving IND-CCA2 security or having a transform like the Fujisaki&#8211;Okamoto transform applied.  Some IND-CPA-secure post-quantum KEMs (i.e., without countermeasures such as the FO transform) are completely insecure under public key reuse; for example, some lattice-based IND-CPA-secure KEMs are vulnerable to attacks that recover the private key after just a few thousand samples <a href="#FLUHRER" class="xref">[FLUHRER]</a>.</p>
 <h1 id="rfc.section.7">
 <a href="#rfc.section.7">7.</a> <a href="#acknowledgements" id="acknowledgements">Acknowledgements</a>
 </h1>
