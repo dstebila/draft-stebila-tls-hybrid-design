@@ -2,7 +2,7 @@
 title: Hybrid key exchange in TLS 1.3
 abbrev: stebila-tls-hybrid-design
 docname: draft-stebila-tls-hybrid-design-latest
-date: 2020-02-17
+date: 2020-03-26
 category: info
 
 ipr: trust200902
@@ -36,6 +36,7 @@ informative:
   BCNS15: DOI.10.1109/SP.2015.40
   BERNSTEIN: DOI.10.1007/978-3-540-88702-7
   BINDEL: DOI.10.1007/978-3-030-25510-7_12
+  CAMPAGNA: I-D.campagna-tls-bike-sike-hybrid
   CECPQ1:
     target: https://security.googleblog.com/2016/07/experimenting-with-post-quantum.html
     title: Experimenting with Post-Quantum Cryptography
@@ -136,6 +137,12 @@ informative:
     author:
       org: Open Quantum Safe Project
     date: 2018-11
+  S2N:
+    target: https://aws.amazon.com/blogs/security/post-quantum-tls-now-supported-in-aws-kms/
+    title: Post-quantum TLS now supported in AWS KMS
+    author:
+      org: Amazon Web Services
+    date: 2019-11-04
   SCHANCK: I-D.schanck-tls-additional-keyshare
   WHYTE12: I-D.whyte-qsh-tls12
   WHYTE13: I-D.whyte-qsh-tls13
@@ -162,6 +169,8 @@ This document does not propose specific post-quantum mechanisms; see {{scope}} f
 
 Earlier versions of this document categorized various design decisions one could make when implementing hybrid key exchange in TLS 1.3.  These have been moved to the appendix of the current draft, and will be eventually be removed.
 
+- since draft-03:
+    - Allow key_exchange values from the same algorithm to be reused across multiple KeyShareEntry records in the same ClientHello.
 - draft-03:
     - Add requirement for KEMs to provide protection against key reuse.
     - Clarify FIPS-compliance of shared secret concatenation method.
@@ -317,6 +326,8 @@ The order of shares in the `HybridKeyExchange` struct is the same as the order o
 
 For the client's share, the `key_exchange_1` and `key_exchange_2` values are the `pk` outputs of the corresponding KEMs' `KeyGen` algorithms, if that algorithm corresponds to a KEM; or the (EC)DH ephemeral key share, if that algorithm corresponds to an (EC)DH group.  For the server's share, the `key_exchange_1` and `key_exchange_2` values are the `ct` outputs of the corresponding KEMs' `Encaps` algorithms, if that algorithm corresponds to a KEM; or the (EC)DH ephemeral key share, if that algorithm corresponds to an (EC)DH group.
 
+{{TLS13}} requires that ``The key_exchange values for each KeyShareEntry MUST be generated independently.''  In the context of this document, since the same algorithm may appear in multiple named groups, we relax the above requirement to allow the same key_exchange value for the same algorithm to be reused in multiple KeyShareEntry records sent in within the same `ClientHello`.  However, the key_exchange values for each algorithm MUST be generated independently.
+
 ## Shared secret calculation {#construction-shared-secret}
 
 Here we also take a simple "concatenation approach": the two shared secrets are concatenated together and used as the shared secret in the existing TLS 1.3 key schedule.  In this case, we do not add any additional structure (length fields) in the concatenation procedure: among all Round 2 candidates, once the algorithm and variant are specified, the shared secret output length is fixed.
@@ -407,7 +418,7 @@ As noted in {{kems}}, KEMs used in the manner described in this document MUST ex
 
 # Acknowledgements
 
-These ideas have grown from discussions with many colleagues, including Christopher Wood, Matt Campagna, Eric Crockett, authors of the various hybrid Internet-Drafts and implementations cited in this document, and members of the TLS working group.  The immediate impetus for this document came from discussions with attendees at the Workshop on Post-Quantum Software in Mountain View, California, in January 2019.  Martin Thomson suggested the [(Comb-KDF-1)](#comb-kdf-1) approach.  Daniel J. Bernstein and Tanja Lange commented on the risks of reuse of ephemeral public keys.
+These ideas have grown from discussions with many colleagues, including Christopher Wood, Matt Campagna, Eric Crockett, authors of the various hybrid Internet-Drafts and implementations cited in this document, and members of the TLS working group.  The immediate impetus for this document came from discussions with attendees at the Workshop on Post-Quantum Software in Mountain View, California, in January 2019.  Martin Thomson suggested the [(Comb-KDF-1)](#comb-kdf-1) approach.  Daniel J. Bernstein and Tanja Lange commented on the risks of reuse of ephemeral public keys.  Matt Campagna and the team at Amazon Web Services provided additional suggestions.
 
 --- back
 
@@ -417,12 +428,12 @@ Quantum computing and post-quantum cryptography in general are outside the scope
 
 There have been several Internet-Drafts describing mechanisms for embedding post-quantum and/or hybrid key exchange in TLS:
 
-- Internet-Drafts for TLS 1.2: {{WHYTE12}}
+- Internet-Drafts for TLS 1.2: {{WHYTE12}}, {{CAMPAGNA}}
 - Internet-Drafts for TLS 1.3: {{KIEFER}}, {{SCHANCK}}, {{WHYTE13}}
 
 There have been several prototype implementations for post-quantum and/or hybrid key exchange in TLS:
 
-- Experimental implementations in TLS 1.2: {{BCNS15}}, {{CECPQ1}}, {{FRODO}}, {{OQS-102}}
+- Experimental implementations in TLS 1.2: {{BCNS15}}, {{CECPQ1}}, {{FRODO}}, {{OQS-102}}, {{S2N}}
 - Experimental implementations in TLS 1.3: {{CECPQ2}}, {{OQS-111}}
 
 These experimental implementations have taken an ad hoc approach and not attempted to implement one of the drafts listed above.
