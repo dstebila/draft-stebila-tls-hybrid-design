@@ -332,7 +332,7 @@ ul.toc li {
 
   <meta name="dct.creator" content="Stebila, D., Fluhrer, S., and S. Gueron" />
   <meta name="dct.identifier" content="urn:ietf:id:draft-stebila-tls-hybrid-design-latest" />
-  <meta name="dct.issued" scheme="ISO8601" content="2020-02-17" />
+  <meta name="dct.issued" scheme="ISO8601" content="2020-03-26" />
   <meta name="dct.abstract" content="Hybrid key exchange refers to using multiple key exchange algorithms simultaneously and combining the result with the goal of providing security even if all but one of the component algorithms is broken.  It is motivated by transition to post-quantum cryptography.  This document provides a construction for hybrid key exchange in the Transport Layer Security (TLS) protocol version 1.3.Discussion of this work is encouraged to happen on the TLS IETF mailing list tls@ietf.org or on the GitHub repository which contains the draft: https://github.com/dstebila/draft-stebila-tls-hybrid-design." />
   <meta name="description" content="Hybrid key exchange refers to using multiple key exchange algorithms simultaneously and combining the result with the goal of providing security even if all but one of the component algorithms is broken.  It is motivated by transition to post-quantum cryptography.  This document provides a construction for hybrid key exchange in the Transport Layer Security (TLS) protocol version 1.3.Discussion of this work is encouraged to happen on the TLS IETF mailing list tls@ietf.org or on the GitHub repository which contains the draft: https://github.com/dstebila/draft-stebila-tls-hybrid-design." />
 
@@ -356,7 +356,7 @@ ul.toc li {
 <td class="right">S. Fluhrer</td>
 </tr>
 <tr>
-<td class="left">Expires: August 20, 2020</td>
+<td class="left">Expires: September 27, 2020</td>
 <td class="right">Cisco Systems</td>
 </tr>
 <tr>
@@ -369,7 +369,7 @@ ul.toc li {
 </tr>
 <tr>
 <td class="left"></td>
-<td class="right">February 17, 2020</td>
+<td class="right">March 26, 2020</td>
 </tr>
 
     	
@@ -386,7 +386,7 @@ ul.toc li {
 <p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
 <p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at https://datatracker.ietf.org/drafts/current/.</p>
 <p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
-<p>This Internet-Draft will expire on August 20, 2020.</p>
+<p>This Internet-Draft will expire on September 27, 2020.</p>
 <h1 id="rfc.copyrightnotice"><a href="#rfc.copyrightnotice">Copyright Notice</a></h1>
 <p>Copyright (c) 2020 IETF Trust and the persons identified as the document authors.  All rights reserved.</p>
 <p>This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents (https://trustee.ietf.org/license-info) in effect on the date of publication of this document.  Please review these documents carefully, as they describe your rights and restrictions with respect to this document.  Code Components extracted from this document must include Simplified BSD License text as described in Section 4.e of the Trust Legal Provisions and are provided without warranty as described in the Simplified BSD License.</p>
@@ -502,6 +502,8 @@ ul.toc li {
 <p></p>
 
 <ul>
+<li>since draft-03: <ul><li>Allow key_exchange values from the same algorithm to be reused across multiple KeyShareEntry records in the same ClientHello.</li></ul>
+</li>
 <li>draft-03: <ul>
 <li>Add requirement for KEMs to provide protection against key reuse.</li>
 <li>Clarify FIPS-compliance of shared secret concatenation method.</li>
@@ -659,6 +661,7 @@ ul.toc li {
 </pre>
 <p id="rfc.section.3.2.p.6">The order of shares in the <samp>HybridKeyExchange</samp> struct is the same as the order of algorithms indicated in the definition of the <samp>NamedGroup</samp>.</p>
 <p id="rfc.section.3.2.p.7">For the client&#8217;s share, the <samp>key_exchange_1</samp> and <samp>key_exchange_2</samp> values are the <samp>pk</samp> outputs of the corresponding KEMs&#8217; <samp>KeyGen</samp> algorithms, if that algorithm corresponds to a KEM; or the (EC)DH ephemeral key share, if that algorithm corresponds to an (EC)DH group.  For the server&#8217;s share, the <samp>key_exchange_1</samp> and <samp>key_exchange_2</samp> values are the <samp>ct</samp> outputs of the corresponding KEMs&#8217; <samp>Encaps</samp> algorithms, if that algorithm corresponds to a KEM; or the (EC)DH ephemeral key share, if that algorithm corresponds to an (EC)DH group.</p>
+<p><a href="#TLS13" class="xref">[TLS13]</a> requires that ``The key_exchange values for each KeyShareEntry MUST be generated independently.&#8217;&#8217;  In the context of this document, since the same algorithm may appear in multiple named groups, we relax the above requirement to allow the same key_exchange value for the same algorithm to be reused in multiple KeyShareEntry records sent in within the same <samp>ClientHello</samp>.  However, the key_exchange values for each algorithm MUST be generated independently.</p>
 <h1 id="rfc.section.3.3">
 <a href="#rfc.section.3.3">3.3.</a> <a href="#construction-shared-secret" id="construction-shared-secret">Shared secret calculation</a>
 </h1>
@@ -729,7 +732,7 @@ concatenated_shared_secret -&gt; HKDF-Extract = Handshake Secret
 <h1 id="rfc.section.7">
 <a href="#rfc.section.7">7.</a> <a href="#acknowledgements" id="acknowledgements">Acknowledgements</a>
 </h1>
-<p id="rfc.section.7.p.1">These ideas have grown from discussions with many colleagues, including Christopher Wood, Matt Campagna, Eric Crockett, authors of the various hybrid Internet-Drafts and implementations cited in this document, and members of the TLS working group.  The immediate impetus for this document came from discussions with attendees at the Workshop on Post-Quantum Software in Mountain View, California, in January 2019.  Martin Thomson suggested the <a href="#comb-kdf-1" class="xref">(Comb-KDF-1)</a> approach.  Daniel J. Bernstein and Tanja Lange commented on the risks of reuse of ephemeral public keys.</p>
+<p id="rfc.section.7.p.1">These ideas have grown from discussions with many colleagues, including Christopher Wood, Matt Campagna, Eric Crockett, authors of the various hybrid Internet-Drafts and implementations cited in this document, and members of the TLS working group.  The immediate impetus for this document came from discussions with attendees at the Workshop on Post-Quantum Software in Mountain View, California, in January 2019.  Martin Thomson suggested the <a href="#comb-kdf-1" class="xref">(Comb-KDF-1)</a> approach.  Daniel J. Bernstein and Tanja Lange commented on the risks of reuse of ephemeral public keys.  Matt Campagna and the team at Amazon Web Services provided additional suggestions.</p>
 <h1 id="rfc.references">
 <a href="#rfc.references">8.</a> References</h1>
 <h1 id="rfc.references.1">
@@ -755,6 +758,11 @@ concatenated_shared_secret -&gt; HKDF-Extract = Handshake Secret
 <td class="reference"><b id="BINDEL">[BINDEL]</b></td>
 <td class="top">
 <a>Bindel, N.</a>, <a>Brendel, J.</a>, <a>Fischlin, M.</a>, <a>Goncalves, B.</a> and <a>D. Stebila</a>, "<a>Hybrid Key Encapsulation Mechanisms and Authenticated Key Exchange</a>", Post-Quantum Cryptography pp. 206-226, DOI 10.1007/978-3-030-25510-7_12, 2019.</td>
+</tr>
+<tr>
+<td class="reference"><b id="CAMPAGNA">[CAMPAGNA]</b></td>
+<td class="top">
+<a>Campagna, M.</a> and <a>E. Crockett</a>, "<a href="https://tools.ietf.org/html/draft-campagna-tls-bike-sike-hybrid-03">Hybrid Post-Quantum Key Encapsulation Methods (PQ KEM) for Transport Layer Security 1.2 (TLS)</a>", Internet-Draft draft-campagna-tls-bike-sike-hybrid-03, March 2020.</td>
 </tr>
 <tr>
 <td class="reference"><b id="CECPQ1">[CECPQ1]</b></td>
@@ -902,6 +910,11 @@ concatenated_shared_secret -&gt; HKDF-Extract = Handshake Secret
 <a>Open Quantum Safe Project</a>, "<a href="https://github.com/open-quantum-safe/openssl/tree/OQS-OpenSSL_1_1_1-stable">OQS-OpenSSL-1-1-1_stable</a>", November 2018.</td>
 </tr>
 <tr>
+<td class="reference"><b id="S2N">[S2N]</b></td>
+<td class="top">
+<a>Amazon Web Services</a>, "<a href="https://aws.amazon.com/blogs/security/post-quantum-tls-now-supported-in-aws-kms/">Post-quantum TLS now supported in AWS KMS</a>", November 2019.</td>
+</tr>
+<tr>
 <td class="reference"><b id="SCHANCK">[SCHANCK]</b></td>
 <td class="top">
 <a>Schanck, J.</a> and <a>D. Stebila</a>, "<a href="https://tools.ietf.org/html/draft-schanck-tls-additional-keyshare-00">A Transport Layer Security (TLS) Extension For Establishing An Additional Shared Secret</a>", Internet-Draft draft-schanck-tls-additional-keyshare-00, April 2017.</td>
@@ -935,7 +948,7 @@ concatenated_shared_secret -&gt; HKDF-Extract = Handshake Secret
 <p></p>
 
 <ul>
-<li>Internet-Drafts for TLS 1.2: <a href="#WHYTE12" class="xref">[WHYTE12]</a>
+<li>Internet-Drafts for TLS 1.2: <a href="#WHYTE12" class="xref">[WHYTE12]</a>, <a href="#CAMPAGNA" class="xref">[CAMPAGNA]</a>
 </li>
 <li>Internet-Drafts for TLS 1.3: <a href="#KIEFER" class="xref">[KIEFER]</a>, <a href="#SCHANCK" class="xref">[SCHANCK]</a>, <a href="#WHYTE13" class="xref">[WHYTE13]</a>
 </li>
@@ -944,7 +957,7 @@ concatenated_shared_secret -&gt; HKDF-Extract = Handshake Secret
 <p></p>
 
 <ul>
-<li>Experimental implementations in TLS 1.2: <a href="#BCNS15" class="xref">[BCNS15]</a>, <a href="#CECPQ1" class="xref">[CECPQ1]</a>, <a href="#FRODO" class="xref">[FRODO]</a>, <a href="#OQS-102" class="xref">[OQS-102]</a>
+<li>Experimental implementations in TLS 1.2: <a href="#BCNS15" class="xref">[BCNS15]</a>, <a href="#CECPQ1" class="xref">[CECPQ1]</a>, <a href="#FRODO" class="xref">[FRODO]</a>, <a href="#OQS-102" class="xref">[OQS-102]</a>, <a href="#S2N" class="xref">[S2N]</a>
 </li>
 <li>Experimental implementations in TLS 1.3: <a href="#CECPQ2" class="xref">[CECPQ2]</a>, <a href="#OQS-111" class="xref">[OQS-111]</a>
 </li>
